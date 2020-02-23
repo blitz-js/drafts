@@ -48,7 +48,7 @@ Blitz will be installed as a global dependency or run via an on-demand tool like
 - `blitz install` - Installs dependencies and runs postinstall scripts. These scripts may include tasks like database migration or TypeScript type generation.
 - `blitz dev` - Starts a local development server. Static assets are served uncompiled to enable easier debugging.
 - `blitz prod` - Starts a production server. This server will serve production versions of all assets, and should support, out of the box, `gzip` compression, `https`, and `http/2`.
-- `blitz test [suite-name]` - Runs the projects test suite, optionally filtering by a suite name to run a subset of tests, if desired.
+- `blitz test [suite-name]` - Runs the project's test suite, optionally filtering by a suite name to run a subset of tests, if desired.
 
 ### Requirements
 
