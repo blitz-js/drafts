@@ -31,7 +31,7 @@ For functionality, the initial versions of the CLI should support:
 Future versions will add support for:
 
 - Local + deployed database migration
-- Running custom scripts installed by dependencies
+- Installing third-party plugins and running third-party scripts
 - An in-console REPL which can interact with your entire application's context (similar to `rails console`)
 - More advanced code generation
   - Entire client-side routes in a single command - data, routing, controllers, APIs, etc.
@@ -49,6 +49,7 @@ Blitz will be installed as a global dependency or run via an on-demand tool like
 - `blitz dev` - Starts a local development server. Static assets are served uncompiled to enable easier debugging.
 - `blitz prod` - Starts a production server. This server will serve production versions of all assets, and should support, out of the box, `gzip` compression, `https`, and `http/2`.
 - `blitz test [suite-name]` - Runs the project's test suite, optionally filtering by a suite name to run a subset of tests, if desired.
+- `blitz run [command]` - A proxy to run custom scripts, proxying to a `package.json` file
 
 ### Requirements
 
