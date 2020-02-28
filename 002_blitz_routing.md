@@ -10,42 +10,54 @@ Most web apps have very similar routing requirements. Currently, every React tea
 
 ## Solution
 
-This routing convention is easy to follow and, when needed, easy to break out of. We almost directly copied it from Ruby on Rails, where it has stood the test of time.
+This routing convention is easy to follow and, when needed, easy to break out of. We copied it from Ruby on Rails, where it has stood the test of time.
+
+Blitz uses the [file-system based router provided by Next.js](https://nextjs.org/docs/routing/introduction).
 
 ### Pages
 
 Say you have a model named `Project`. Your routes will be:
 
-| Path                | File                        |
-| ------------------- | --------------------------- |
-| /projects           | pages/projects/index.js     |
-| /projects/new       | pages/projects/new.js       |
-| /projects/[id]      | pages/projects/[id].js      |
-| /projects/[id]/edit | pages/projects/[id]/edit.js |
+| HTTP | Controller Action        | Path                | File                        |
+| ---- | ------------------------ | ------------------- | --------------------------- |
+| GET  | ProjectsController.index | /projects           | pages/projects/index.js     |
+| GET  |                          | /projects/new       | pages/projects/new.js       |
+| GET  | ProjectsController.show  | /projects/[id]      | pages/projects/[id].js      |
+| GET  | ProjectsController.show  | /projects/[id]/edit | pages/projects/[id]/edit.js |
 
-And if you also have `Task` models that belong to projects, your routes will be:
+And if you also have a `Task` models that belong to projects, your routes will be:
 
-| Path                           | File                                   |
-| ------------------------------ | -------------------------------------- |
-| /projects                      | pages/projects/index.js                |
-| /projects/new                  | pages/projects/new.js                  |
-| /projects/[id]                 | pages/projects/[id].js                 |
-| /projects/[id]/edit            | pages/projects/[id]/edit.js            |
-| /projects/[id]/tasks           | pages/projects/[id]/tasks/index.js     |
-| /projects/[id]/tasks/new       | pages/projects/[id]/tasks/new.js       |
-| /projects/[id]/tasks/[id]      | pages/projects/[id]/tasks/[id].js      |
-| /projects/[id]/tasks/[id]/edit | pages/projects/[id]/tasks/[id]/edit.js |
+| HTTP | Controller Action        | Path                                  | File                                          |
+| ---- | ------------------------ | ------------------------------------- | --------------------------------------------- |
+| GET  | ProjectsController.index | /projects                             | pages/projects/index.js                       |
+| GET  |                          | /projects/new                         | pages/projects/new.js                         |
+| GET  | ProjectsController.show  | /projects/[id]                        | pages/projects/[id].js                        |
+| GET  | ProjectsController.show  | /projects/[id]/edit                   | pages/projects/[id]/edit.js                   |
+| GET  | TasksController.index    | /projects/[projectId]/tasks           | pages/projects/[projectId]/tasks/index.js     |
+| GET  |                          | /projects/[projectId]/tasks/new       | pages/projects/[projectId]/tasks/new.js       |
+| GET  | TasksController.show     | /projects/[projectId]/tasks/[id]      | pages/projects/[projectId]/tasks/[id].js      |
+| GET  | TasksController.show     | /projects/[projectId]/tasks/[id]/edit | pages/projects/[projectId]/tasks/[id]/edit.js |
 
 ### API
 
 Each model has a controller. Blitz turns each controller into an http request handler.
 
-For a `ProjectsController`, the API routes will be:
+For `Project` and `Task` as started above, the API routes will be:
 
-| HTTP Verb | Controller Action | Path               | File                          |
-| --------- | ----------------- | ------------------ | ----------------------------- |
-| GET       | index             | /api/projects      | pages/api/projects/[...id].js |
-| GET       | show              | /api/projects/[id] | pages/api/projects/[...id].js |
-| POST      | create            | /api/projects      | pages/api/projects/[...id].js |
-| PATCH     | update            | /api/projects/[id] | pages/api/projects/[...id].js |
-| DELETE    | delete            | /api/projects/[id] | pages/api/projects/[...id].js |
+| HTTP   | Controller Action         | Path                                 | File                                            |
+| ------ | ------------------------- | ------------------------------------ | ----------------------------------------------- |
+| GET    | ProjectsController.index  | /api/projects                        | pages/api/projects/[...id].js                   |
+| GET    | ProjectsController.show   | /api/projects/[id]                   | pages/api/projects/[...id].js                   |
+| POST   | ProjectsController.create | /api/projects                        | pages/api/projects/[...id].js                   |
+| PATCH  | ProjectsController.update | /api/projects/[id]                   | pages/api/projects/[...id].js                   |
+| DELETE | ProjectsController.delete | /api/projects/[id]                   | pages/api/projects/[...id].js                   |
+|        |                           |                                      |                                                 |
+| GET    | TasksController.index     | /api/tasks                           | pages/api/tasks/[...id].js                      |
+| GET    | TasksController.show      | /api/tasks/[id]                      | pages/api/tasks/[...id].js                      |
+| POST   | TasksController.create    | /api/tasks                           | pages/api/tasks/[...id].js                      |
+| PATCH  | TasksController.update    | /api/tasks/[id]                      | pages/api/tasks/[...id].js                      |
+| DELETE | TasksController.delete    | /api/tasks/[id]                      | pages/api/tasks/[...id].js                      |
+|        |                           |                                      |                                                 |
+| GET    | TasksController.index     | /api/projects/[projectId]/tasks      | pages/api/projects/[projectId]/tasks/[...id].js |
+| GET    | TasksController.show      | /api/projects/[projectId]/tasks/[id] | pages/api/projects/[projectId]/tasks/[...id].js |
+| POST   | TasksController.create    | /api/projects/[projectId]/tasks      | pages/api/projects/[projectId]/tasks/[...id].js |
