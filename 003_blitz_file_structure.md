@@ -6,7 +6,9 @@ This is a proposal for the file structure of a standard Blitz app.
 
 ## Problem
 
-The file structure of a project is something that adds zero value to your app. Therefore time spent debating or managing this is truly a waste of time. Prettier eliminated time wasted on file formatting. Blitz is eliminating time wasted on file structure for React apps. Other frameworks like Ruby on Rails and Ember have always had ile structure conventions to great success. One of the biggest benefits is uniformity among projects. Any Blitz app will feel familiar, and you'll know eactly where to look when you need to find something.
+The file structure of a project is something that adds zero value to your app. Therefore time spent debating or managing this is truly a waste of time. Prettier eliminated time wasted on file formatting. Blitz is eliminating time wasted on file structure for React apps.
+
+Other frameworks like Ruby on Rails and Ember have always had file structure conventions to great success. One of the biggest benefits is uniformity among projects. Any Blitz app will feel familiar, and you'll know exactly where to look when you need to find something.
 
 ## Solution
 
@@ -53,11 +55,11 @@ Async job processing is TBD, but processing logic will live here
 
 ### `layouts`
 
-Contains top level layout components. These will typically define your app shell and top level navigation menus. How these are used is TBD. How these will get dyamic data, like current user name and current company name is also TBD.
+Contains top level layout components. These will typically define your app shell and top level navigation menus. How these are used is TBD. How these will get dynamic data, like current user name and current company name is also TBD.
 
 ### `pages`
 
-Contains all your top level app pages
+Contains all your application pages
 
 ### `pages/api`
 
