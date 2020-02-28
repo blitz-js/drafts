@@ -16,16 +16,7 @@ Blitz uses the [file-system based router provided by Next.js](https://nextjs.org
 
 ### Pages
 
-Say you have a model named `Project`. Your routes will be:
-
-| HTTP | Controller Action        | Path                | File                        |
-| ---- | ------------------------ | ------------------- | --------------------------- |
-| GET  | ProjectsController.index | /projects           | pages/projects/index.js     |
-| GET  |                          | /projects/new       | pages/projects/new.js       |
-| GET  | ProjectsController.show  | /projects/[id]      | pages/projects/[id].js      |
-| GET  | ProjectsController.show  | /projects/[id]/edit | pages/projects/[id]/edit.js |
-
-And if you also have a `Task` models that belong to projects, your routes will be:
+Say you have a `Project` model and a `Task` model which belongs to a `Project`. Your routes will be:
 
 | HTTP | Controller Action        | Path                                  | File                                          |
 | ---- | ------------------------ | ------------------------------------- | --------------------------------------------- |
@@ -33,6 +24,7 @@ And if you also have a `Task` models that belong to projects, your routes will b
 | GET  |                          | /projects/new                         | pages/projects/new.js                         |
 | GET  | ProjectsController.show  | /projects/[id]                        | pages/projects/[id].js                        |
 | GET  | ProjectsController.show  | /projects/[id]/edit                   | pages/projects/[id]/edit.js                   |
+|      |                          |                                       |                                               |
 | GET  | TasksController.index    | /projects/[projectId]/tasks           | pages/projects/[projectId]/tasks/index.js     |
 | GET  |                          | /projects/[projectId]/tasks/new       | pages/projects/[projectId]/tasks/new.js       |
 | GET  | TasksController.show     | /projects/[projectId]/tasks/[id]      | pages/projects/[projectId]/tasks/[id].js      |
