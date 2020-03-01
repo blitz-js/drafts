@@ -14,7 +14,7 @@ Blitz provides a nicely designed CLI that's heavily inspired by the Ruby on Rail
 
 ### Installation & Usage
 
-- You install `blitz` globally.
+- You install `blitz` globally **or** you can use npx: `npx blitz [command]`
 - A Blitz app will have `blitz` installed as a dependency
 - When the blitz cli is used inside a blitz project, it will proxy commands to `node_modules/.bin/blitz`. This is critical so the blitz command is always tied to the version installed in the project, not the version of the global CLI package.
 
