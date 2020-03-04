@@ -58,4 +58,4 @@ Run all the tests in watch mode to rerun tests anytime files change
 
 #### `blitz run [script-name]`
 
-Run a script defined in `package.json`. This is a convenience method for using `yarn run` or `npm run`
+Run the script at `scripts/[script-name].js` with the same context environment as `blitz console`. This is the equivalent to Rails rake tasks.
