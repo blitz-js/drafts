@@ -17,7 +17,7 @@ Blitz is for building tiny to large database-backed web applications (and in the
 ## Foundational Principles
 
 1. Fullstack & Monolithic
-2. API Optional
+2. Backend API Optional
 3. Convention over Configuration
 4. Loose Opinions
 5. Easy to Start, Easy to Scale
@@ -28,9 +28,13 @@ Blitz is for building tiny to large database-backed web applications (and in the
 
 A fullstack, monolithic application is simpler than an application where frontend and backend are developed and deployed separately. Monolithic doesn't mean it will be slow or hard to scale to large teams. Monolithic doesn't mean there isn't separation of concerns. Monolithic means you can reason about your app as a single entity.
 
-### 2. API Optional
+### 2. Backend API Optional
 
-Choosing React for your view layer should not force you to build a backend API. Usually the only reason you need an API is to get data to your frontend, unless you need a public API or a mobile app (Blitz will later add no-API support for mobile). It's extremely expensive to have an API only for your frontend because it adds a lot of unnecessary complexity, making development slower, maintenance harder, and deployment more complex.
+Choosing React for your view layer should not force you to build a backend API. Usually you only need an API to get data to your frontend, unless you need a public API for third-parties or a mobile app. It's extremely expensive to build and maintain an API that's only used by your frontend because it adds a lot of unnecessary complexity, making development slower, maintenance harder, and deployment more complex.
+
+In a Blitz app, you write server-side controllers for all your CRUD operations. These controllers have direct access to your database. You connect them to the pages that need that data, and then Blitz automatically and securly gets your data from the backend controller to your frontend components. You don't make any client-side fetch calls, deal with global state management, or mess with client-side data caching. Mutations work in a similar fashion.
+
+You develop Blitz apps similar to a traditional server rendered framework like Rails, but the end-user experience is as a React Single Page App.
 
 If at some point you actually do need an API, you can easily add a GraphQL API with auto generated resolvers. Or if REST is your jam, you can add that to your Blitz app instead.
 
