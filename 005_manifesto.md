@@ -62,9 +62,9 @@ Scaling is important in all forms: lines of code, number of people working in th
 
 ### 6. Stability
 
-In the fast-paced world of Javascript, a stable, predictable release cycle is a breath of fresh air. [Ember is the model citizen](https://emberjs.com/releases/) in this regard, and Blitz will follow their lead. Ember strictly follows SemVer with stable releases every 6 weeks and LTS releases every 6 months.
+In the fast-paced world of Javascript, a stable, predictable release cycle is a breath of fresh air. A stable release cycle ensures minimal breaking changes and ensures you know exactly what and when a breaking change will occur. It also minimizes bugs in stable releases by ensuring features are in beta for a minimum amount of time. [Ember is the model citizen](https://emberjs.com/releases/) in this regard.
 
-A stable release cycle ensures minimal breaking changes and ensures you know exactly what and when a breaking change will occur. It also minimizes bugs in stable releases by ensuring features are in beta for a minimum amount of time.
+The exact details of the Blitz release cycle are to be determined, but we'll follow a pattern similar to Ember which strictly follows SemVer with stable releases every 6 weeks and LTS releases every 6 months.
 
 Blitz will follow a public RFC (request for comments) process so all users and companies can participate in proposing and evaluating new features.
 
