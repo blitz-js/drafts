@@ -4,7 +4,7 @@
 
 Technology follows a repeating cycle of bundling and unbundling. Created in 2005, Ruby on Rails became a major bundling force, making web application development easier and more accessible than ever before. This benefited everyone, from those learning programming to seniors building production systems.
 
-A major unbundling happened in 2013 with the release of React, a hyper focused rendering layer without any opinions for things like styling, state management, and routing. As React grew in popularity, so did the choices for all the other parts of an app, leaving developers with hundreds of decisions to make when starting a new app. While this has contributed to JavaScript Fatigue, it's been a powerful driving force for rapid frontend innovation.
+A major unbundling happened in 2013 with the release of React, a hyper focused rendering layer without any opinions for things like styling, state management, and routing. As React grew in popularity, so did the choices for all the other parts, leaving developers with hundreds of decisions to make when starting a new app. While this has contributed to JavaScript Fatigue, it's been a powerful driving force for rapid frontend innovation.
 
 Now, in 2020, is the perfect time for another major bundling. Developers are yearning for an easier, simpler way to build web applications. Beginners want a guiding hand for building a robust app, and seniors want a framework that removes mundane tasks while providing a highly scalable architecture with all the right escape hatches.
 
@@ -32,7 +32,7 @@ A fullstack, monolithic application is simpler than an application where fronten
 
 Choosing React for your view layer should not force you to build a backend API. Usually you only need an API to get data to your frontend, unless you need a public API for third-parties or a mobile app. It's extremely expensive to build and maintain an API that's only used by your frontend because it adds a lot of unnecessary complexity, making development slower, maintenance harder, and deployment more complex.
 
-In a Blitz app, you write server-side controllers for all your CRUD operations. These controllers have direct access to your database. You connect them to the pages that need that data, and then Blitz automatically and securly gets your data from the backend controller to your frontend components. You don't make any client-side fetch calls, deal with global state management, or mess with client-side data caching. Mutations work in a similar fashion.
+In a Blitz app, you write server-side controllers for all your CRUD operations. These controllers have direct access to your database. You connect them to the pages that need that data, and then Blitz automatically and securely gets your data from the backend controller to your frontend components. You don't make any client-side fetch calls, deal with global state management, or mess with client-side data caching. Mutations work in a similar fashion.
 
 You develop Blitz apps similar to a traditional server rendered framework like Rails, but the end-user experience is as a React Single Page App.
 
@@ -48,7 +48,7 @@ Convention over configuration doesn't mean no configuration. It means configurat
 
 ### 4. Loose Opinions
 
-Blitz is opinionated. The out-of-the-box experience guides you on a path perfect for most applications. However, Blitz isn't arrogant. It totally understands there are very good reasons for deviating from convention, and it allows you to do so easily. For example, Blitz has a conventional file structure, but, with a few exceptions, doesn't _enforce_ it.
+Blitz is opinionated. The out-of-the-box experience guides you on a path perfect for most applications. However, Blitz isn't arrogant. It totally understands there are very good reasons for deviating from convention, and it allows you to do so easily. For example, Blitz has a conventional file structure, but, with few exceptions, doesn't _enforce_ it.
 
 And when there's not consensus among the React community for a thing, `blitz new` will prompt you to choose the approach you want, such as Tailwind CSS, Theme UI, or styled-components.
 
