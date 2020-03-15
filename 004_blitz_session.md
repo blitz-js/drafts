@@ -21,6 +21,8 @@
 ## Implementation detail
 This section highlights what the user will need to do in order to setup sessions. The aim here is to make it as simple and transparent to the user as possible.
 
+ TODO
+
 ## Default methodology:
 #### Creation of a session
 - After login, the backend will issue an opaque token. This will be a random, 32 character long `string`. The backend will also issue an anti-csrf token which will also be 32 characters long. The final access token will be a concatenation of these two strings. 
@@ -71,7 +73,9 @@ This is significantly more secure than the above, but it is slightly more inconv
 - From a security point of view, it is important that we also send a new refresh token. If we do not do that, then this flow is the same as the previous flow (from a security point of view).
 
 #### Session revocation
-
+- This is easily done by revoking the refresh session from the database.
+- This is also how user logout will be implemented. Furthermore, cookies will be cleared, and a header will be sent signalling to the frontend to remove the anti-csrf token from the localstorage.
+- Because we are using JWTs, technically, the session is not completely revoked immediately. A malicious user can still access the APIs with that JWT. Once the JWT expires (which has a very short lifetime), then the session will be completely revoked. This seems to provide a good balance between security and scalability. The alternative is to use opaque tokens instead of JWTs as the access token.
 
 #### Authorisation
 We want to be able to associate roles to sessions. There are many ways of doing this, but by default, we will allow just on role per session. This role information can be stored in the JWT access token.
@@ -81,17 +85,12 @@ We could have allowed a session to have multiple roles, but then this can easily
 If a session's role changes, the access and the refresh token need to change.
 
 #### Why is this slightly more inconvenient to the user that the previous method?
+For server side rendering, we require the access token in almost all backend calls that result from a browser navigation. If the access token is expired / missing, then these API calls cannot function without refreshing the session.
+
+However, the refresh token is not available to these calls. The only way to refresh the session is to send some code to the frontend (JS & HTML that shows a spinner) that will call the refresh API, and on success redirect the page and call this API again (this time with a valid access token).
+
+This extra implementation detail can be handled automatically by the framework in client side rendered apps, but not in server side rendered apps since it requires UI input.
 
 
 #### Why is this more secure than the default method?
-This question is answered in [this blog post](https://supertokens.io/blog/all-you-need-to-know-about-user-session-security).
-
-
-
---------
-questions:
-- JWT or opaque in the secure method? Give user the choice?
-- Give details on the exact algorithm of the secure method? It starts to get complex.
-- I do not have a good enough mental model of how blitz frontend commnication works with the backend. But as a reference to how we have done it for SuperTokens, you can see our documentation for node and website, and then advice on which parts are good and not good for blitz app: [NodeJs docs](https://supertokens.io/docs/nodejs/installation), [Website SDK docs](https://supertokens.io/docs/website/installation).
-- Anonymous session is not incorporated in these flows yet. But initial thoughts are that when someone visits a blitz website, then we want to allow to create a JWT based session for that anonymous user. This way, we will not use any db space (especially useful for high traffic sites with a high bounce rate). Session data will be stored in the JWT. If the developer wants to associate a lot of session data with that user, such that the JWT size results in cookies being more than 4kb, then we want to transparently store that extra information in the database and just have a reference to that in the JWT. But can we ignore this problem initially? The signing key of this JWT is different to the the one used when the user is logged in since this key cannot change in the same manner. 
-- We should have a system for cron jobs. Most "serious" apps that I have built require at least one cron job for doing some business logic. Cron jobs will also be required for both the session flows mentioned above. Technically, we can still build it without cron jobs, but then there could be cases where a session may be in the database even after it has expired if the user never returns to that app. 
+This question is answered in this 2 part [blog post](https://supertokens.io/blog/all-you-need-to-know-about-user-session-security). This method also detects session hijacking which can occur in all the following ways as mentioned [here](https://docs.google.com/spreadsheets/d/14h9qd2glE31HSGUofx43XwfJHZNzgkdCwEKl-3UcXLE/edit?usp=sharing).
