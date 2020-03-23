@@ -1,5 +1,9 @@
 # Blitz API
 
+Open questions
+
+- [ ] helpers / models / validations
+
 ## First principles
 
 The minimum conceptual things a developer needs to define an application are:
@@ -12,6 +16,14 @@ The minimum conceptual things a developer needs to define an application are:
 That leaves Computation and Orchestration
 
 These are the key decisions our framework needs to make for people.
+
+## Principles and priorities
+
+- Flexible
+- Minimal API surface
+- Minimal ceremony
+- Testability
+- Easy to understand and learn
 
 ## View
 
