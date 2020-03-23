@@ -157,7 +157,7 @@ model Counter {
 
 ### Example Simple Interaction
 
-GetCount
+GetCounter
 
 ```ts
 // app/counter/interactions/getCounter.ts
@@ -174,7 +174,7 @@ function getCounter(db: BlitzDB) {
 export default defineQuery(getCounter);
 ```
 
-increment
+Increment
 
 ```ts
 // app/counter/interactions/increment.ts
@@ -196,7 +196,7 @@ function increment(db: BlitzDB) {
 export default defineCommand(increment);
 ```
 
-decrement
+Decrement
 
 ```ts
 // app/counter/interactions/decrement.ts
@@ -222,7 +222,7 @@ export default defineCommand(decrement);
 
 Pipe allows us to split commands and queries which means we can manage performance better by running commands in an asynchronous queue, caching queries and doing optimistic lock analysis. This could be introduced at a later point when solving race conditions.
 
-#### decrement Interaction
+#### Decrement Interaction
 
 Pipe orchestration: First get the counter then apply the decrement.
 
@@ -230,19 +230,19 @@ Pipe orchestration: First get the counter then apply the decrement.
 // app/counter/interactions/decrement.ts
 import { pipe, defineCommand } from "blitzjs/interactions";
 import getCounter from "./getCounter";
-import Applydecrement from "./Applydecrement";
+import applyDecrement from "./Applydecrement";
 
-export default pipe(getCounter, Applydecrement);
+export default pipe(getCounter, applyDecrement);
 ```
 
 Command
 
 ```ts
-// app/counter/interactions/Applydecrement.ts
+// app/counter/interactions/applyDecrement.ts
 import { pipe, defineCommand } from "blitzjs/interactions";
 import { BlitzDB } from "blitzjs/db";
 
-function Applydecrement(db: BlitzDB) {
+function applyDecrement(db: BlitzDB) {
   return async (counter: Counter) => {
     await db.counter.update(
       { data: { count: counter.count - 1 } },
@@ -251,26 +251,26 @@ function Applydecrement(db: BlitzDB) {
   };
 }
 
-export default defineCommand(Applydecrement);
+export default defineCommand(applyDecrement);
 ```
 
-#### increment Interaction
+#### Increment Interaction
 
 ```ts
 // app/counter/interactions/increment.ts
 import { pipe, defineCommand } from "blitzjs/interactions";
 import getCounter from "./getCounter";
-import Applydecrement from "./Applydecrement";
+import applyIncrement from "./Applydecrement";
 
-export default pipe(getCounter, Applyincrement);
+export default pipe(getCounter, applyIncrement);
 ```
 
 ```ts
-// app/counter/interactions/Applyincrement.ts
+// app/counter/interactions/applyIncrement.ts
 import { pipe, defineCommand } from "blitzjs/interactions";
 import { BlitzDB } from "blitzjs/db";
 
-function Applyincrement(db: BlitzDB) {
+function applyIncrement(db: BlitzDB) {
   return async (counter: Counter) => {
     await db.counter.update(
       { data: { count: counter.count + 1 } },
@@ -279,5 +279,5 @@ function Applyincrement(db: BlitzDB) {
   };
 }
 
-export default defineCommand(Applyincrement);
+export default defineCommand(applyIncrement);
 ```
