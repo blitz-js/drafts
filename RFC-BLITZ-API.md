@@ -129,7 +129,7 @@ model Counter {
 }
 ```
 
-### Example Interaction
+### Example Simple Interaction
 
 GetCount
 
@@ -158,7 +158,7 @@ import GetCounter from "./GetCounter";
 
 function Increment(db: BlitzDB) {
   return async (id: number) => {
-    const counter = await GetCounter(id);
+    const counter = await GetCounter(id); // Not optimal because it is run every time this command is run
 
     await db.counter.update(
       { data: { count: counter.count + 1 } },
@@ -190,4 +190,68 @@ function Decrement(db: BlitzDB) {
 }
 
 export default defineCommand(Decrement);
+```
+
+### Example of splitting Commands and Queries with Pipe (later)
+
+Pipe allows us to split commands and queries which means we can manage performance better by running commands in an asynchronous queue, caching queries and doing optimistic lock analysis. This could be introduced at a later point when solving race conditions.
+
+#### Decrement Interaction
+
+Pipe orchestration: First get the counter then apply the decrement.
+
+```ts
+// app/counter/interactions/Decrement.ts
+import { pipe, defineCommand } from "blitzjs/interactions";
+import GetCounter from "./GetCounter";
+import ApplyDecrement from "./ApplyDecrement";
+
+export default pipe(GetCounter, ApplyDecrement);
+```
+
+Command
+
+```ts
+// app/counter/interactions/ApplyDecrement.ts
+import { pipe, defineCommand } from "blitzjs/interactions";
+import { BlitzDB } from "blitzjs/db";
+
+function ApplyDecrement(db: BlitzDB) {
+  return async (counter: Counter) => {
+    await db.counter.update(
+      { data: { count: counter.count - 1 } },
+      { where: { id: counter.id } }
+    );
+  };
+}
+
+export default defineCommand(ApplyDecrement);
+```
+
+#### Increment Interaction
+
+```ts
+// app/counter/interactions/Increment.ts
+import { pipe, defineCommand } from "blitzjs/interactions";
+import GetCounter from "./GetCounter";
+import ApplyDecrement from "./ApplyDecrement";
+
+export default pipe(GetCounter, ApplyIncrement);
+```
+
+```ts
+// app/counter/interactions/ApplyIncrement.ts
+import { pipe, defineCommand } from "blitzjs/interactions";
+import { BlitzDB } from "blitzjs/db";
+
+function ApplyIncrement(db: BlitzDB) {
+  return async (counter: Counter) => {
+    await db.counter.update(
+      { data: { count: counter.count + 1 } },
+      { where: { id: counter.id } }
+    );
+  };
+}
+
+export default defineCommand(ApplyIncrement);
 ```
