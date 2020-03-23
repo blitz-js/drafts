@@ -118,6 +118,32 @@ export default function Counter(props: { id: number }) {
 }
 ```
 
+Alternative syntax to create a single custom client in the View.
+
+```tsx
+// app/counter/pages/the-counter.tsx
+import GetCounter from 'app/counter/interactions/GetCounter'
+import Increment from 'app/counter/interactions/Increment'
+import Decrement from 'app/counter/interactions/Decrement'
+import {useBlitzClient} from 'blitzjs/view'
+
+export default function Counter(props: { id: number }) {
+  const client = useBlitzClient({
+    counter: [GetCounter, props.id],
+    increment: Increment,
+    decrement: Decrement
+  });
+
+  return (
+    <div>
+      <div>{client.counter.count}<div>
+      <button onClick={() => client.increment(props.id)}>+</button>
+      <button onClick={() => client.decrement(props.id)}>-</button>
+    </div>
+  )
+}
+```
+
 ### Example State
 
 ```prisma
