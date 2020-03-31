@@ -280,7 +280,7 @@ GraphQL is a great technology, but it's not great as the backbone for apps that 
 
 Primarily because GraphQL is not scalable when deployed to serverless platforms like Zeit or Netlify. It's not scalable because all of your resolver code is stuffed into a single Lambda causing you to quickly run into cold start issues and max code size issues. 
 
-Anyone deploying a sizable GraphQL API via serverless Lambda functions does so by splitting the graph into many small Lamba functions, each of which is responsible for discrete set of types. Then you use a paid service such as Apollo Federation to stitch the entire schema back together again.
+Anyone deploying a sizable GraphQL API via serverless Lambda functions does so by splitting the graph into many small Lamba functions, each of which is responsible for discrete set of types. Then you have a separate gateway like Apollo Federation or GraphQL Mesh to stitch the entire schema back together again.
 
 Other reasons include:
 
@@ -298,7 +298,19 @@ The initial Blitz announcement relied heavily on SSR as the method to absolve th
 
 With the architecture in this RFC, SSR is no longer required or important.
 
-SSR initial render or static initial render is now a choice you can make on a page-by-page basis. The exact API for making this choice is still TBD, but likely you will choose between `useQuery` and `useSSRQuery`.
+You have two choices for the initial visit to an authenticated page: (1) SSR or (2) Static page shell with dynamic data populated on the client. Once the first page is loaded in the browser, all subsequent pages are rendered client side, regardless of how the first visit was rendered.
+
+### Approach 1: SSR
+
+The first thing the user sees will be a fully populated page, because you only need one round trip to the server to get everything on that page. The user will have to wait a bit longer to see anything than with the static shell, but the benefit is they don't see a loading screen.
+
+### Approach 2: Static Page Shell
+
+The first thing the user sees will be an empty app shell with a loading screen. This static shell renders extremely fast because it's cached on a CDN, but then the user has to wait for the dynamic data to be retrieved from the server.
+
+Later we'll provide more in-depth documentation on the tradeoffs between these two approaches.
+
+You will be able to choose between SSR and static shell on a page-by-page basis. The exact API for making this choice is still TBD, but likely you will choose between `useQuery` and `useSSRQuery`.
 
 ## Deployment Agnostic
 
