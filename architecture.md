@@ -1,0 +1,318 @@
+# RFC: Blitz App Architecture
+
+
+We think the architecture proposed in this RFC is the ideal solution to meet all the following goals:
+
+1. Simple
+2. Composable
+3. Flexible
+4. Powerful (no arbitrary restrictions)
+5. Highly scalable
+6. Abstract away the entire network layer (no need to build an API)
+7. Fully static types (no compile step needed for Typescript types)
+8. Future mobile support (Run a Blitz app on multiple platforms, like web and react-native)
+9. GraphQL Ready
+
+## Scope
+
+Blitz is a fullstack framework designed for database backed applications that can be accessed via multiple platforms, such as web, mobile apps, and a GraphQL API.
+
+Blitz is designed to be extremely easy for beginners while at the same time being highly scalable and flexible for advanced users and very large apps.
+
+## Architecture Fundamentals
+
+Database backed applications have three fundamental parts:
+
+1. User Interface 
+2. Data schema
+3. Computation
+
+The goal is to enable Blitz developers to focus on these three parts without concern for anything else like HTTP, manually fetching client-side data, etc.
+
+## 1. User Interface
+
+Blitz uses React and Next.js for the UI layer. Blitz provides a few conveniences on top of Next, but it still gives you its raw power to do everything you are used to doing with Next, including `getStaticProps`, `getServerSideProps`, `getInitialProps`, and totally custom API routes.
+
+Under the hood, a Blitz app is compiled to a Next.js app for deployment. This gives us freedom to do things like use a totally different file structure that's better for fullstack apps.
+
+## 2. Data Schema
+
+Blitz is database agnostic. You are free to use anything at this layer, including something like TypeORM.
+
+However, the recommended happy path is to use Prisma 2. Prisma 2 is a new type safe database client with schema management and migrations. It currently supports Postgres, MySQL, and SQLite, and it will be adding support for many others such as Mongo and DynamoDB.
+
+### Data Validation
+
+Validation is a key part of your data schema. Validation is needed both server-side and client-side. In a Blitz app, you define your validation rules one time, and then you can use them on both the server and the client.
+
+The API for defining and using validation rules is TBD, but the plan is to integrate them with prisma client so all prisma client input is automatically validated. Also, you'll be able to directly plug validation rules into React form libraries like Formik.
+
+### Authorization
+
+Fine-grained authorization is another critical part of your data schema for determining who can access and change data. In a Blitz app, you define your authorization rules one time, and then you can use them on both the server and the client.
+
+The API for defining and using authorization rules is TBD, but the plan is to integrate them with prisma client so all all prisma client reads & writes are always automatically authorized.
+
+## 3. Computation
+
+The majority of computation in most apps is basic Create, Read, Update, and Delete (CRUD) operations. CRUD operations should be extremely simple and not require tons of boilerplate (if you've used GraphQL, you know how much boilerplate that requires!)
+
+The most simple way to execute some computation is to directly call a function (vs making a fetch call, for example).
+
+So we've designed Blitz queries and mutations to be invoked via direct function calls.
+
+### Queries
+
+Define a Blitz query by exporting a plain Javascript function. The first function argument can be anything you want. The second argument will be provided by Blitz when executed from the frontend.
+
+The query function is always executed on the server, so you can safely read directly from the database.
+
+```ts
+// /some/path/getProduct.ts
+import {Context} from 'blitz/types'
+import db, {FindOneProductArgs} from 'db'
+
+export default async function getProduct(args: FindOneProductArgs, ctx?: Context) {
+  // Can do any pre-processing here or trigger events
+
+  const product = await db.setUser(ctx.session.user).product.findOne(args)
+
+  // Can do any post-processing here or trigger events
+
+  return product
+}
+```
+
+To use this query in your React component, you directly import the above query function and pass it to the `useQuery` hook. The second argument to `useQuery` will be the first argument to the query function.
+
+The hook's input and output is fully typed. This would fail to compile if the `product` table in the database didn't have a `name` field.
+
+```tsx
+// pages/products/[id].tsx
+import {useQuery} from 'blitz'
+import getProduct from '/some/path/getProduct'
+
+export default function(props: {query: {id: number}}) {
+  const [product] = useQuery(getProduct, {where: {id: props.query.id}})
+
+  return (
+    <div>
+      <h1>{product.name}</h1>
+    </div>
+  )
+}
+```
+
+We plan to use `react-query` under the hood, so you'll get all the features it provides such as caching, polling, revalidate on window focus, etc.
+
+#### Static Pages
+
+For public pages without private user data, you can use Blitz queries at build time for a fully static page.
+
+```tsx
+// pages/products/[id].tsx
+import {PromiseReturnType} from 'blitz/types'
+import getProduct from '/some/path/getProduct'
+
+export const getStaticProps = async context => {
+  const product = await getProduct({where: {id: context.params?.id}})
+
+  if (!product) throw new Error('Missing product!')
+
+  return { props: {product} }
+}
+
+export default function(props: PromiseReturnType<typeof getStaticProps>['props']) {
+  return (
+    <div>
+      <h1>{props.product.name}</h1>
+    </div>
+  )
+}
+```
+
+### Mutations
+
+Mutations follow the same pattern. Export a plain Javascript function with your function input as the first argument and the framework supplied context as the second.
+
+```ts
+// /some/path/updateProduct.ts
+import {Context} from 'blitz/types'
+import db, {ProductUpdateInput} from 'db'
+
+export default async function updateProduct(data: ProductUpdateInput, ctx?: Context) {
+  // Can do any pre-processing here or trigger events
+
+  const product = await db.setUser(ctx.session.user).product.update({where: {id: data.id}, data})
+
+  // Can do any post-processing here or trigger events
+
+  return product
+}
+```
+
+Then in your component, import the above mutation function and call it directly.
+
+```tsx
+// pages/product/[id]/edit.tsx
+import {useQuery, Router} from 'blitz'
+import getProduct from '/some/path/getProduct'
+import updateProduct from '/some/path/updateProduct'
+import {Formik} from 'formik'
+
+export default function(props: {query: {id: number}}) {
+  const [product] = useQuery(getProduct, {where: {id: props.query.id}})
+
+  return (
+    <div>
+      <h1>{product.name}</h1>
+      <Formik
+        initialValues={product}
+        validate={/* TBD */}
+        onSubmit={async values => {
+          try {
+            const product = await updateProduct(values)
+            Router.push(`/products/${product.id}`)
+          } catch (error) {
+            alert('Error saving product')
+          }
+        }}>
+        {({handleSubmit}) => <form onSubmit={handleSubmit}></form>}
+      </Formik>
+    </div>
+  )
+}
+```
+
+### How the Heck Does That Work?
+
+Blitz does some fancy stuff at compile time to convert the imported queries and mutations in your component into remote procedure calls (RPC). So your server code stays on the server and isn't actually included in your client-side bundle.
+
+We love this approach for all the following reasons:
+
+1. Extremely simple. Just import the function and call it like any other function.
+2. Everything has complete Typescript types without a compiler (unlike GraphQL).
+3. The entire network layer is abstracted away so you can focus on what makes your app unique.
+4. Queries and mutations are highly composable and easily testable.
+
+### Composition
+
+Queries and mutations are highly composable because they are plain Javascript functions.
+
+Here's an example:
+
+```ts
+// /some/path/importProducts.ts
+import {Context} from 'blitz/types'
+import {createProduct} from '.'
+import {ProductCreateInput} from 'db'
+
+export default async function(data: ProductCreateInput[], ctx?: Context) {
+  let numberOfCreatedProducts = 0
+  let errors: any[] = []
+
+  for (let product of data) {
+    try {
+      await createProduct(data, ctx)
+      numberOfCreatedProducts++
+    } catch (error) {
+      errors.push({name: product.name, error})
+    }
+  }
+
+  if (errors) throw new Error(errors)
+
+  return numberOfCreatedProducts
+}
+```
+
+### Auto Generated HTTP API
+
+All queries and mutations will be automatically exposed at a unique URL, such as `/api/product/getProduct` and `/api/product/updateProduct`.  
+
+### Middleware
+
+Queries and mutations are HTTP agnostic, but you still need a way to access raw HTTP for advanced use cases. For this, Blitz provides a middleware API that can add arbitrary data to the context object that's provided to the query/mutation function.
+
+This example gets the `referer` and adds it to the context object.
+
+```ts
+// /some/path/special.ts
+import {Context, ApiRequest, ApiResponse} from 'blitz/types'
+
+type ReferrerContext = { referrer: string }
+
+export const middleware = [
+  (req: NextApiRequest, res: NextApiResponse): ReferrerContext => {
+    return {
+      referrer: req.headers.referer
+    }
+  }
+]
+
+type SpecialContext = Context & ReferrerContext
+
+export default async function special(data: any, ctx?: SpecialContext) {
+
+  return ctx?.referrer
+}
+```
+
+## Authentication
+
+We are working on an authentication system that's highly secure and deeply integrated with Blitz. We will use Passport.js so you can use any of its strategies for identity verification. And for session management, we are building an advanced custom solution that has many features such as session timeout, session revocation, and anonymous session data that can be transferred to an authenticated session. Also it will automatically prevent against CSRF, XSS, and database session theft.
+
+Blitz will automatically provide the authenticated session data to queries and mutations via the context argument.
+
+We will later post a separate RFC with all the details on this.
+
+## Why not MVC?
+
+The Model-View-Controller (MVC) pattern was designed for building graphical user interfaces where each UI component has its own model, view, and controller, *not as an overall application architecture*.
+
+MVC has many problems when used as an app architecture such as too much boilerplate, too much indirection, controllers are not composable, confusion on where specific code should live, etc.
+
+In MVC apps, Controllers are mainly responsible for taking an HTTP request and connecting it to the appropriate code for handling the request. We've totally eliminated the need for controllers because, with the RPC pattern, you are executing functions directly. 
+
+## Why not GraphQL?
+
+GraphQL is a great technology, but it's not great as the backbone for apps that are monolithic, fullstack, and serverless.
+
+Primarily because GraphQL is not scalable when deployed to serverless platforms like Zeit or Netlify. It's not scalable because all of your resolver code is stuffed into a single Lambda causing you to quickly run into cold start issues and max code size issues. 
+
+Anyone deploying a sizable GraphQL API via serverless Lambda functions does so by splitting the graph into many small Lamba functions, each of which is responsible for discrete set of types. Then you use a paid service such as Apollo Federation to stitch the entire schema back together again.
+
+Other reasons include:
+
+1. A lot of boilerplate, especially for use with Typescript
+2. Typescript types require a code watcher and compiler
+3. Extra code dependencies
+
+## GraphQL Ready
+
+Although Blitz doesn't use GraphQL, all your Blitz queries and mutations can easily be used as GraphQL resolvers.
+
+## SSR?
+
+The initial Blitz announcement relied heavily on SSR as the method to absolve the developer from building an API and manually doing client-side data fetching.
+
+With the architecture in this RFC, SSR is no longer required or important.
+
+SSR initial render or static initial render is now a choice you can make on a page-by-page basis. The exact API for making this choice is still TBD, but likely you will choose between `useQuery` and `useSSRQuery`.
+
+## Deployment Agnostic
+
+Like Next.js, Blitz is agnostic as to your deployment type and host. Blitz apps are compiled to Next.js, so you can deploy a Blitz app in all the same ways you can deploy Next.js.
+
+Blitz/Next are not tied to the Zeit platform. The build produces plain Javascript files that can be run anywhere, including directly on AWS Lambda.
+
+Also, Blitz/Next can be self-hosted on a traditional server, like a standard Express app, for example.
+
+
+## File Structure
+
+The Blitz app file structure is detailed in a separate RFC. LINK
+
+## Routing Conventions
+
+Blitz app routing conventions are detailed in a separate RFC. LINK.
