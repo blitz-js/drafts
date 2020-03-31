@@ -308,6 +308,11 @@ Blitz/Next are not tied to the Zeit platform. The build produces plain Javascrip
 
 Also, Blitz/Next can be self-hosted on a traditional server, like a standard Express app, for example.
 
+## Background Processing
+
+Asynchronous background processing is a very important for anything more than trivial apps. If you host a Blitz app on a traditional server, you can do normal Node.js background processing with a library like Bull. But for serverless deployments, you need to use a third-party service like CloudAMQP.com.
+
+We will be exploring ways to make this super easy for serverless environments.
 
 ## File Structure
 
