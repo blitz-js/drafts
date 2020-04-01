@@ -158,6 +158,7 @@ A configuration file with the same format as `next.config.js`
 ### Other Notes
 
 - All top level folders are automatically aliased. So for example you can import from `app/projects/queries/getProject` from anywhere in our app.
+- The Blitz CLI will have a `routes` command that makes it easy to see a full aggregated view of all your app routes.
 
 ## Routing
 
