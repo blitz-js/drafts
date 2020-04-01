@@ -1,8 +1,12 @@
-# RFC: Blitz App Architecture
+# [RFC] Blitz App Architecture
 
-Blitz is for building tiny to large fullstack database-backed applications that have one or more graphical user interfaces like web or mobile apps.
+The central thesis for Blitz is most apps don't need a REST or GraphQL API. Blitz brings back the simplicity of server rendered frameworks like Ruby on Rails while preserving everything we love about React.
 
-### Foundational Principles
+### What is Blitz Designed For?
+
+Blitz is designed for tiny to large database-backed applications that have one or more graphical user interfaces. Web support will be released first, followed by React Native. We are pursuing the dream of a single monolithic application that runs on web and mobile with maximum code sharing and minimal boilerplate.
+
+### What are the Foundational Principles?
 
 1. Fullstack & Monolithic
 2. API Not Required
@@ -12,9 +16,32 @@ Blitz is for building tiny to large fullstack database-backed applications that 
 6. Stability
 7. Community over Code
 
-Read the [Blitz Manifesto](https://github.com/blitz-js/blitz/blob/canary/MANIFESTO.md) for more details on each principle.
+[The Blitz Manifesto](https://github.com/blitz-js/blitz/blob/canary/MANIFESTO.md) explains theses principles in much greater detail.
 
-## Architecture Fundamentals
+## Table of Contents
+
+1. Architecture Fundamentals
+2. User Interface
+3. Data Schema
+4. Computation
+  A. Queries
+  B. Mutations
+  C. How the Heck Does That Work?
+  D. Composition
+  E. Auto Generated HTTP API
+  F. Middleware
+5. Authentication
+6. Why not MVC?
+7. Why not GraphQL?
+8. Blitz is GraphQL Ready
+9. SSR?
+10. Deployment Agnostic
+11. Background Processing
+12. File Structure
+13. Routing Conventions
+14. Summary
+
+## 1. Architecture Fundamentals
 
 Database backed applications have three fundamental parts:
 
@@ -22,15 +49,15 @@ Database backed applications have three fundamental parts:
 2. Data schema
 3. Computation
 
-The goal is to enable Blitz developers to focus on these three parts without concern for anything else like HTTP, manually fetching client-side data, etc.
+Everything else should be minimized as much as possible. This includes boilerplate, HTTP details, manually fetching data, etc.
 
-## 1. User Interface
+## 2. User Interface
 
-Blitz uses React and Next.js for the UI layer. Blitz provides a few conveniences on top of Next, but it still gives you its raw power to do everything you are used to doing with Next, including `getStaticProps`, `getServerSideProps`, `getInitialProps`, and totally custom API routes.
+Blitz uses React and Next.js for the UI layer. Blitz provides a few conveniences on top of Next. But Blitz still gives you the raw power of Next.js to do anything you want. Including `getStaticProps`, `getServerSideProps`, `getInitialProps`, and custom API routes.
 
 Under the hood, a Blitz app is compiled to a Next.js app for deployment. This gives us freedom to do things like use a totally different file structure that's better for fullstack apps.
 
-## 2. Data Schema
+## 3. Data Schema
 
 Blitz is database agnostic. You are free to use anything at this layer, including something like TypeORM.
 
@@ -44,11 +71,11 @@ The API for defining and using validation rules is TBD, but the plan is to integ
 
 ### Authorization
 
-Fine-grained authorization is another critical part of your data schema for determining who can access and change data. In a Blitz app, you define your authorization rules one time, and then you can use them on both the server and the client.
+Fine-grained authorization is another critical part of your data schema. In a Blitz app, you define your authorization rules one time, and then you can use them on both the server and the client.
 
 The API for defining and using authorization rules is TBD, but the plan is to integrate them with prisma client so all all prisma client reads & writes are always automatically authorized.
 
-## 3. Computation
+## 4. Computation
 
 The majority of computation in most apps is basic Create, Read, Update, and Delete (CRUD) operations. CRUD operations should be extremely simple and not require tons of boilerplate (if you've used GraphQL, you know how much boilerplate that requires!)
 
@@ -56,7 +83,7 @@ The most simple way to execute some computation is to directly call a function (
 
 So we've designed Blitz queries and mutations to be invoked via direct function calls.
 
-### Queries
+### A. Queries
 
 Define a Blitz query by exporting a plain Javascript function. The first function argument can be anything you want. The second argument will be provided by Blitz when executed from the frontend.
 
@@ -126,7 +153,7 @@ export default function(props: PromiseReturnType<typeof getStaticProps>['props']
 }
 ```
 
-### Mutations
+### B. Mutations
 
 Mutations follow the same pattern. Export a plain Javascript function with your function input as the first argument and the framework supplied context as the second.
 
@@ -179,7 +206,7 @@ export default function(props: {query: {id: number}}) {
 }
 ```
 
-### How the Heck Does That Work?
+### C. How the Heck Does That Work?
 
 Blitz does some fancy stuff at compile time to convert the imported queries and mutations in your component into remote procedure calls (RPC). So your server code stays on the server and isn't actually included in your client-side bundle.
 
@@ -190,7 +217,7 @@ We love this approach for all the following reasons:
 3. The entire network layer is abstracted away so you can focus on what makes your app unique.
 4. Queries and mutations are highly composable and easily testable.
 
-### Composition
+### D. Composition
 
 Queries and mutations are highly composable because they are plain Javascript functions.
 
@@ -221,11 +248,11 @@ export default async function(data: ProductCreateInput[], ctx?: Context) {
 }
 ```
 
-### Auto Generated HTTP API
+### E. Auto Generated HTTP API
 
-All queries and mutations will be automatically exposed at a unique URL, such as `/api/product/getProduct` and `/api/product/updateProduct`.  
+All queries and mutations will be automatically exposed at a unique URL, such as `/api/product/getProduct` and `/api/product/updateProduct`. The exact URL details are to be determined.  
 
-### Middleware
+### F. Middleware
 
 Queries and mutations are HTTP agnostic, but you still need a way to access raw HTTP for advanced use cases. For this, Blitz provides a middleware API that can add arbitrary data to the context object that's provided to the query/mutation function.
 
@@ -253,23 +280,23 @@ export default async function special(data: any, ctx?: SpecialContext) {
 }
 ```
 
-## Authentication
+## 5. Authentication
 
-We are working on an authentication system that's highly secure and deeply integrated with Blitz. We will use Passport.js so you can use any of its strategies for identity verification. And for session management, we are building an advanced custom solution that has many features such as session timeout, session revocation, and anonymous session data that can be transferred to an authenticated session. Also it will automatically prevent against CSRF, XSS, and database session theft.
+We are working on an authentication system that's highly secure and deeply integrated with Blitz. We will use Passport.js so you can use any of its strategies for identity verification. Then we are building an advanced solution for session management that has many features such as session timeout, session revocation, and anonymous session data that can be transferred to an authenticated session. Also it will automatically prevent against CSRF, XSS, and database session theft.
 
 Blitz will automatically provide the authenticated session data to queries and mutations via the context argument.
 
 We will later post a separate RFC with all the details on this.
 
-## Why not MVC?
+## 6. Why not MVC?
 
 The Model-View-Controller (MVC) pattern was designed for building graphical user interfaces where each UI component has its own model, view, and controller, *not as an overall application architecture*.
 
 MVC has many problems when used as an app architecture such as too much boilerplate, too much indirection, controllers are not composable, confusion on where specific code should live, etc.
 
-In MVC apps, Controllers are mainly responsible for taking an HTTP request and connecting it to the appropriate code for handling the request. We've totally eliminated the need for controllers because, with the RPC pattern, you are executing functions directly. 
+In MVC apps, Controllers are mainly responsible for taking an HTTP request and connecting it to the appropriate code for handling the request. We've totally eliminated the need for controllers because, with the RPC pattern, you are simply executing functions. 
 
-## Why not GraphQL?
+## 7. Why not GraphQL?
 
 GraphQL is a great technology, but it's not great as the backbone for apps that are monolithic, fullstack, and serverless.
 
@@ -283,15 +310,13 @@ Other reasons include:
 2. Typescript types require a code watcher and compiler
 3. Extra code dependencies
 
-## GraphQL Ready
+## 8. Blitz is GraphQL Ready
 
 Although Blitz doesn't use GraphQL, all your Blitz queries and mutations can easily be used as GraphQL resolvers.
 
-## SSR?
+## 9. SSR?
 
-The initial Blitz announcement relied heavily on SSR as the method to absolve the developer from building an API and manually doing client-side data fetching.
-
-With the architecture in this RFC, SSR is no longer required or important.
+The initial Blitz announcement relied heavily on SSR. With the architecture in this RFC, SSR is no longer required or important.
 
 You have two choices for the initial visit to an authenticated page: (1) SSR or (2) Static page shell with dynamic data populated on the client. Once the first page is loaded in the browser, all subsequent pages are rendered client side, regardless of how the first visit was rendered.
 
@@ -307,24 +332,36 @@ Later we'll provide more in-depth documentation on the tradeoffs between these t
 
 You will be able to choose between SSR and static shell on a page-by-page basis. The exact API for making this choice is still TBD, but likely you will choose between `useQuery` and `useSSRQuery`.
 
-## Deployment Agnostic
+## 10. Deployment Agnostic
 
 Like Next.js, Blitz is agnostic as to your deployment type and host. Blitz apps are compiled to Next.js, so you can deploy a Blitz app in all the same ways you can deploy Next.js.
 
-Blitz/Next are not tied to the Zeit platform. The build produces plain Javascript files that can be run anywhere, including directly on AWS Lambda.
+Blitz/Next are not tied to the Zeit platform. The build produces plain Javascript files you can run anywhere, including directly on AWS Lambda.
 
 Also, Blitz/Next can be self-hosted on a traditional server, like a standard Express app, for example.
 
-## Background Processing
+## 11. Background Processing
 
 Asynchronous background processing is a very important for anything more than trivial apps. If you host a Blitz app on a traditional server, you can do normal Node.js background processing with a library like Bull. But for serverless deployments, you need to use a third-party service like CloudAMQP.com.
 
 We will be exploring ways to make this super easy for serverless environments.
 
-## File Structure
+## 12. File Structure
 
 The Blitz app file structure is detailed in a separate RFC. LINK
 
-## Routing Conventions
+## 13. Routing Conventions
 
 Blitz app routing conventions are detailed in a separate RFC. LINK.
+
+## 14. Summary
+
+Once we have sufficient feedback on this proposal and made any necessary changes, we're ready to dive headlong into development to bring this entire vision to life.
+
+### How You Can Help
+
+1. Contributions of any kind, including code, design, documentation, and translation.
+   1. Join the Blitz Slack group LINK
+   2. Find an unclaimed issue that is marked as ready to work on. Then comment that you are working on it.
+2. Donation or Sponsorship
+   1. Click the sponsor button at the top of this repo to see the options.
