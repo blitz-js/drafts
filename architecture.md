@@ -41,17 +41,16 @@ Web support will be released first, followed by React Native. We are pursuing th
    - D. [Composition](#d-composition)
    - E. [Auto Generated HTTP API](#e-auto-generated-http-api)
    - F. [Middleware](#f-middleware)
-5. [Authentication](#5-authentication)
-6. [Why not MVC?](#6-why-not-mvc)
-7. [Why not GraphQL?](#7-why-not-graphql)
-8. [Blitz is GraphQL Ready](#8-blitz-is-graphql-ready)
-9. [SSR?](#9-ssr)
-10. [Deployment Agnostic](#10-deployment-agnostic)
-11. [Background Processing](#11-background-processing)
-12. [Websockets?](#12-websockets)
-13. [File Structure](#13-file-structure)
-14. [Routing Conventions](#14-routing-conventions)
-15. [Summary](#15-summary)
+5. [File Structure and Routing](#5-file-structure-and-routing)
+6. [Authentication](#6-authentication)
+7. [Why not MVC?](#7-why-not-mvc)
+8. [Why not GraphQL?](#8-why-not-graphql)
+9. [Blitz is GraphQL Ready](#9-blitz-is-graphql-ready)
+10. [SSR?](#10-ssr)
+11. [Deployment Agnostic](#11-deployment-agnostic)
+12. [Background Processing](#12-background-processing)
+13. [Websockets?](#13-websockets)
+14. [Summary](#14-summary)
 
 ## 1. Architecture Fundamentals
 
@@ -292,7 +291,11 @@ export default async function special(data: any, ctx?: SpecialContext) {
 }
 ```
 
-## 5. Authentication
+## 5. File Structure and Routing
+
+LINK LINK Blitz file structure and routing are detailed in a separate RFC. We'd love your feedback on that too!
+
+## 6. Authentication
 
 We are working on an authentication system that's highly secure and deeply integrated with Blitz. We will use Passport.js so you can use any of its strategies for identity verification. Then we are building an advanced solution for session management that has many features such as session timeout, session revocation, and anonymous session data that can be transferred to an authenticated session. Also it will automatically prevent against CSRF, XSS, and database session theft.
 
@@ -300,7 +303,7 @@ Blitz will automatically provide the authenticated session data to queries and m
 
 We will later post a separate RFC with all the details on this.
 
-## 6. Why not MVC?
+## 7. Why not MVC?
 
 The Model-View-Controller (MVC) pattern was designed for building graphical user interfaces where each UI component has its own model, view, and controller, *not as an overall application architecture*.
 
@@ -308,7 +311,7 @@ MVC has many problems when used as an app architecture such as too much boilerpl
 
 In MVC apps, Controllers are mainly responsible for taking an HTTP request and connecting it to the appropriate code for handling the request. We've totally eliminated the need for controllers because, with the RPC pattern, you are simply executing functions. 
 
-## 7. Why not GraphQL?
+## 8. Why not GraphQL?
 
 GraphQL is a great technology, but it's not great as the backbone for apps that are monolithic, fullstack, and serverless.
 
@@ -322,11 +325,11 @@ Other reasons include:
 2. Typescript types require a code watcher and compiler
 3. Extra code dependencies
 
-## 8. Blitz is GraphQL Ready
+## 9. Blitz is GraphQL Ready
 
 Although Blitz doesn't use GraphQL, all your Blitz queries and mutations can easily be used as GraphQL resolvers.
 
-## 9. SSR?
+## 10. SSR?
 
 The initial Blitz announcement relied heavily on SSR. With the architecture in this RFC, SSR is no longer required or important.
 
@@ -344,7 +347,7 @@ Later we'll provide more in-depth documentation on the tradeoffs between these t
 
 You will be able to choose between SSR and static shell on a page-by-page basis. The exact API for making this choice is still TBD, but likely you will choose between `useQuery` and `useSSRQuery`.
 
-## 10. Deployment Agnostic
+## 11. Deployment Agnostic
 
 Like Next.js, Blitz is agnostic as to your deployment type and host. Blitz apps are compiled to Next.js, so you can deploy a Blitz app in all the same ways you can deploy Next.js.
 
@@ -352,13 +355,13 @@ Blitz/Next are not tied to the Zeit platform. The build produces plain Javascrip
 
 Also, Blitz/Next can be self-hosted on a traditional server, like a standard Express app, for example.
 
-## 11. Background Processing
+## 12. Background Processing
 
 Asynchronous background processing is a very important for anything beyond trivial apps. If you host a Blitz app on a traditional server, you can do normal Node.js background processing with a library like Bull. But for serverless deployments, you need to use a third-party service like CloudAMQP.com.
 
 We will be exploring ways to make this super easy for serverless environments.
 
-## 12. Websockets?
+## 13. Websockets?
 
 Blitz currently has no plan for integrated websocket support because they aren't well supported in serverless environments and aren't currently supported by Prisma 2.
 
@@ -366,15 +369,7 @@ The reccomended approach for live updates is to use polling. Polling is a first-
 
 Alternatively, you can use a third-party service like Pusher.com for high performance websockets.
 
-## 13. File Structure
-
-The Blitz app file structure is detailed in a separate RFC. LINK
-
-## 14. Routing Conventions
-
-Blitz app routing conventions are detailed in a separate RFC. LINK.
-
-## 15. Summary
+## 14. Summary
 
 Once we have sufficient feedback on this proposal and made any necessary changes, we'll dive headlong into development to bring this entire vision to life!
 
