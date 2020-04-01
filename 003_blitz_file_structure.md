@@ -1,80 +1,144 @@
-# RFC 003: Blitz App File Structure
+# [RFC] Blitz File Structure & Routing Conventions
 
-## Summary
+**The purpose of this RFC is to gain consensus on the Blitz file structure and routing.**
 
-This is a proposal for the file structure of a standard Blitz app.
+**We welcome all feedback, whether good or bad! This is your chance to ensure Blitz meets the needs of your company or project.**
 
-## Problem
+<hr/>
 
-The file structure of a project is something that adds zero value to your app. Therefore time spent debating or managing this is truly a waste of time. Prettier eliminated time wasted on file formatting. Blitz is eliminating time wasted on file structure for React apps.
 
-Other frameworks like Ruby on Rails and Ember have always had file structure conventions to great success. One of the biggest benefits is uniformity among projects. Any Blitz app will feel familiar, and you'll know exactly where to look when you need to find something.
-
-## Solution
+## File Structure
 
 ```
-├── app/
-│   └── users/
-│       ├── components/
-│       │   └── Form.js
-│       ├── controller.js
-│       ├── model.js
-│       └── tests/
-├── db/
-│   ├── migrations/
+├── app
+│   ├── projects
+│   │   ├── components
+│   │   │   ├── Project.js
+│   │   │   ├── ProjectForm.js
+│   │   │   └── Projects.js
+│   │   ├── mutations
+│   │   │   ├── createProject.js
+│   │   │   ├── deleteProject.js
+│   │   │   └── updateProject.js
+│   │   └── queries
+│   │       ├── getProject.js
+│   │       └── getProjects.js
+│   └── tasks
+│       ├── components
+│       │   ├── Task.js
+│       │   ├── TaskForm.js
+│       │   └── Tasks.js
+│       ├── mutations
+│       │   ├── createTask.js
+│       │   ├── deleteTask.js
+│       │   └── updateTask.js
+│       └── queries
+│           ├── getTask.js
+│           └── getTasks.js
+├── blitz.config.js
+├── db
+│   ├── index.js
+│   ├── migrations
 │   └── schema.prisma
-├── integrations/
-├── jobs/
-├── layouts/
+├── integrations
+├── jobs
+├── layouts
 │   ├── Authenticated.js
 │   └── Public.js
-├── next.config.js
-├── pages/
-│   └── api/
-├── public/
+├── public
 │   └── favicon.ico
-├── tests/
-└── utils/
+├── routes
+│   ├── about.js
+│   ├── api
+│   │   └── stripe-webhook.js
+│   ├── features.js
+│   ├── index.js
+│   ├── log-in.js
+│   ├── pricing.js
+│   ├── projects
+│   │   ├── [id]
+│   │   │   └── edit.js
+│   │   ├── [id].js
+│   │   ├── [projectId]
+│   │   │   └── tasks
+│   │   │       ├── [id]
+│   │   │       │   └── edit.js
+│   │   │       ├── [id].js
+│   │   │       ├── index.js
+│   │   │       └── new.js
+│   │   ├── index.js
+│   │   └── new.js
+│   └── sign-up.js
+├── tests
+└── utils
+
 ```
 
-### `app`
+- All top level folders are automatically aliased. So for example you can import from `app/projects/queries/getProject` from anywhere in our app.
 
-Contains all domain models along with their model, controller, components, and tests. Models can be organized into groups. For example, `images/` and `videos/` could be nested inside `media/`.
+#### `app`
 
-### `db`
+Contains all your core application code including queries, mutations, routes, and tests. Folders can be nested and organized any way you want. For example, `images/` and `videos/` could be nested inside `media/`.
 
-Contains database configuration, schema, and migration files
+#### `db`
 
-### `integrations`
+Contains database configuration, schema, and migration files. `db/index.js` exports your initialized database client for easy use throughout your app.
+
+#### `integrations`
 
 Contains third-party integration code. Ex: `auth0.js`, `twilio.js`, etc. These files are a good place to instantiate a client with shared configuration.
 
-### `jobs`
+#### `jobs`
 
-Async job processing is TBD, but processing logic will live here
+Asynchronous background job processing is TBD, but processing logic will live here.
 
-### `layouts`
+#### `layouts`
 
-Contains top level layout components. These will typically define your app shell and top level navigation menus. How these are used is TBD. How these will get dynamic data, like current user name and current company name is also TBD.
+Contains top level layout components. These will typically define your app shell and top level navigation menus. Details surrounding these are TBD.
 
-### `pages`
+#### `routes`
 
-Contains all your application pages
+Same semantics as the Next.js `pages` folder, just with a better name. All files and directories in here are mapped to the url corrosponding to their file paths.
 
-### `pages/api`
+Files in `routes/api` should expose an HTTP handler function.
 
-Contains all API handlers. For many apps, you will not write any custom code in here. All the files will be just a few lines of auto generated code for Blitz to automatically harness controllers to an HTTP handler.
+#### `public`
 
-However, you could of course add `graphql.js` and use Nexus to generate your resolvers.
+All files in here are served statically from your app's root URL
 
-### `public`
-
-All files in here are served statically by Next.js from the root URL
-
-### `tests`
+#### `tests`
 
 Contains integration and end-to-end tests
 
-### `utils`
+#### `utils`
 
 Contains all those pesky little files and functions every project accumulates
+
+#### `blitz.config.js` 
+
+A configuration file with the same format as `next.config.js`
+
+## Routing Conventions
+
+Blitz uses the [file-system based router provided by Next.js](https://nextjs.org/docs/routing/introduction).
+
+We copied this convention from Ruby on Rails, where it has stood the test of time. The Blitz CLI will use these conventions for code scaffolding. If you don't like them, you are free to deviate and do anything you want.
+
+- Entity names are plural
+- Each of the following have their own page: entity index, single entity show page, new entity page, and edit entity page
+- `id` is used from the dynamic url slug
+- `entityId` is used for dynamic url slug of parent entities
+
+Example: You have a `Project` model and a `Task` model which belongs to a `Project`. Your routes will be:
+
+| Path                                  | File                                          |
+| ------------------------------------- | --------------------------------------------- |
+| /projects                             | app/projects/routes/projects/index.js          |
+| /projects/new                         | app/projects/routes/projects/new.js                         |
+| /projects/[id]                        | app/projects/routes/projects/[id].js                        |
+| /projects/[id]/edit                   | app/projects/routes/projects/[id]/edit.js                   |
+|                                       |                                               |
+| /projects/[projectId]/tasks           | app/tasks/routes/projects/[projectId]/tasks/index.js     |
+| /projects/[projectId]/tasks/new       | app/tasks/routes/projects/[projectId]/tasks/new.js       |
+| /projects/[projectId]/tasks/[id]      | app/tasks/routes/projects/[projectId]/tasks/[id].js      |
+| /projects/[projectId]/tasks/[id]/edit | app/tasks/routes/projects/[projectId]/tasks/[id]/edit.js |
