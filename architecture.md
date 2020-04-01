@@ -1,10 +1,21 @@
 # [RFC] Blitz App Architecture
 
+**The purpose of this RFC is to gather as much feedback as possible before building everything outlined below.**
+
+**We welcome all feedback, whether good or bad! This is your chance to ensure Blitz has the features needed for your company or project.**
+
+
+<hr/>
+
+## Introduction 
+
 The central thesis for Blitz is most apps don't need a REST or GraphQL API. Blitz brings back the simplicity of server rendered frameworks like Ruby on Rails while preserving everything we love about React.
 
 ### What is Blitz Designed For?
 
-Blitz is designed for tiny to large database-backed applications that have one or more graphical user interfaces. Web support will be released first, followed by React Native. We are pursuing the dream of a single monolithic application that runs on web and mobile with maximum code sharing and minimal boilerplate.
+Blitz is designed for tiny to large database-backed applications that have one or more graphical user interfaces. 
+
+Web support will be released first, followed by React Native. We are pursuing the dream of a single monolithic application that runs on web and mobile with maximum code sharing and minimal boilerplate.
 
 ### What are the Foundational Principles?
 
@@ -16,30 +27,31 @@ Blitz is designed for tiny to large database-backed applications that have one o
 6. Stability
 7. Community over Code
 
-[The Blitz Manifesto](https://github.com/blitz-js/blitz/blob/canary/MANIFESTO.md) explains theses principles in much greater detail.
+[The Blitz Manifesto](https://github.com/blitz-js/blitz/blob/canary/MANIFESTO.md) explains theses principles in detail.
 
 ## Table of Contents
 
 1. [Architecture Fundamentals](#1-architecture-fundamentals)
-2. User Interface
-3. Data Schema
-4. Computation
-  A. Queries
-  B. Mutations
-  C. How the Heck Does That Work?
-  D. Composition
-  E. Auto Generated HTTP API
-  F. Middleware
-5. Authentication
-6. Why not MVC?
-7. Why not GraphQL?
-8. Blitz is GraphQL Ready
-9. SSR?
-10. Deployment Agnostic
-11. Background Processing
-12. File Structure
-13. Routing Conventions
-14. Summary
+2. [User Interface](#2-user-interface)
+3. [Data Schema](#3-data-schema)
+4. [Computation](#4-computation)
+   - A. [Queries](#a-queries)
+   - B. [Mutations](#b-mutations)
+   - C. [How the Heck Does That Work?](#c-how-the-heck-does-that-work)
+   - D. [Composition](#d-composition)
+   - E. [Auto Generated HTTP API](#e-auto-generated-http-api)
+   - F. [Middleware](#f-middleware)
+5. [Authentication](#5-authentication)
+6. [Why not MVC?](#6-why-not-mvc)
+7. [Why not GraphQL?](#7-why-not-graphql)
+8. [Blitz is GraphQL Ready](#8-blitz-is-graphql-ready)
+9. [SSR?](#9-ssr)
+10. [Deployment Agnostic](#10-deployment-agnostic)
+11. [Background Processing](#11-background-processing)
+12. [Websockets?](#12-websockets)
+13. [File Structure](#13-file-structure)
+14. [Routing Conventions](#14-routing-conventions)
+15. [Summary](#15-summary)
 
 ## 1. Architecture Fundamentals
 
@@ -342,26 +354,34 @@ Also, Blitz/Next can be self-hosted on a traditional server, like a standard Exp
 
 ## 11. Background Processing
 
-Asynchronous background processing is a very important for anything more than trivial apps. If you host a Blitz app on a traditional server, you can do normal Node.js background processing with a library like Bull. But for serverless deployments, you need to use a third-party service like CloudAMQP.com.
+Asynchronous background processing is a very important for anything beyond trivial apps. If you host a Blitz app on a traditional server, you can do normal Node.js background processing with a library like Bull. But for serverless deployments, you need to use a third-party service like CloudAMQP.com.
 
 We will be exploring ways to make this super easy for serverless environments.
 
-## 12. File Structure
+## 12. Websockets?
+
+Blitz currently has no plan for integrated websocket support because they aren't well supported in serverless environments and aren't currently supported by Prisma 2.
+
+The reccomended approach for live updates is to use polling. Polling is a first-class Blitz feature.
+
+Alternatively, you can use a third-party service like Pusher.com for high performance websockets.
+
+## 13. File Structure
 
 The Blitz app file structure is detailed in a separate RFC. LINK
 
-## 13. Routing Conventions
+## 14. Routing Conventions
 
 Blitz app routing conventions are detailed in a separate RFC. LINK.
 
-## 14. Summary
+## 15. Summary
 
-Once we have sufficient feedback on this proposal and made any necessary changes, we're ready to dive headlong into development to bring this entire vision to life.
+Once we have sufficient feedback on this proposal and made any necessary changes, we'll dive headlong into development to bring this entire vision to life!
 
 ### How You Can Help
 
-1. Contributions of any kind, including code, design, documentation, and translation.
+1. **Contributions of any kind, including code, design, documentation, and translation.**
    1. Join the Blitz Slack group LINK
    2. Find an unclaimed issue that is marked as ready to work on. Then comment that you are working on it.
-2. Donation or Sponsorship
+2. **Donation or Sponsorship**
    1. Click the sponsor button at the top of this repo to see the options.
