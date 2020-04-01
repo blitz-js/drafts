@@ -27,7 +27,7 @@ Web support will be released first, followed by React Native. We are pursuing th
 6. Stability
 7. Community over Code
 
-[The Blitz Manifesto](https://github.com/blitz-js/blitz/blob/canary/MANIFESTO.md) explains theses principles in detail.
+[The Blitz Manifesto](https://github.com/blitz-js/blitz/blob/canary/MANIFESTO.md) explains these principles in detail.
 
 ## Table of Contents
 
