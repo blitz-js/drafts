@@ -9,6 +9,8 @@
 
 ## File Structure
 
+Blitz is defining a standard file structure to anwser the age old question of "How should I organize my react app files?"
+
 Our guiding principle on file structure is that files that change together should live together.
 
 
@@ -101,21 +103,19 @@ Our guiding principle on file structure is that files that change together shoul
 └── utils/
 ```
 
-- All top level folders are automatically aliased. So for example you can import from `app/projects/queries/getProject` from anywhere in our app.
-
 #### `app`
 
 Contains all your core application code.
 
-The file structured nested inside `app` can be anything you want, but there are some folder names with special behaviour detailed below.
+The file structure nested inside `app` can be anything you want, except for a few special folders detailed below.
 
-Typically you will two types of "container" directories inside `app`: **entity** directories like `projects/` and `tasks/` and **context** directories like `marketing/` or `/admin`.
+Typically you will have two types of "container" directories inside `app`: **entity** directories like `projects/` and `tasks/` and **context** directories like `marketing/` or `admin/`.
 
-#### Special Blitz Folders
+##### Special Folders
 
 Special Blitz folders can exist at any level of the hierarchy inside `app`.
 
-- `routes/` and `routes/api/` are for exposing a React component or API handler at a specific URL. Routing inside these folders is always from the application root.
+- `routes/` and `routes/api/` are for exposing a React component or API handler at a specific URL. Routing inside these folders is always from the application root. These folders follow the same semantics as the Next.js `pages/` directory, just with a better name.
 - `queries/` and `mutations/` are for your Blitz queries and mutations. Each query and mutation is exposed at a URL corrosponding to it's file path.
 
 #### `db`
@@ -136,17 +136,13 @@ Contains top level layout components. These will typically define your app shell
 
 #### `routes`
 
-Same semantics as the Next.js `pages` folder, just with a better name. All files and directories in here are mapped to the url corrosponding to their file paths.
+Same semantics as the Next.js `pages` folder, just with a better name. All files in here are mapped to the url corrosponding to their file paths.
 
-Files in `routes/api` should expose an HTTP handler function.
+Files in `routes/api` are exposed as API endpoints.
 
 #### `public`
 
 All files in here are served statically from your app's root URL
-
-#### `tests`
-
-Contains integration and end-to-end tests
 
 #### `utils`
 
@@ -155,6 +151,11 @@ Contains all those pesky little files and functions every project accumulates
 #### `blitz.config.js` 
 
 A configuration file with the same format as `next.config.js`
+
+
+### Other Notes
+
+- All top level folders are automatically aliased. So for example you can import from `app/projects/queries/getProject` from anywhere in our app.
 
 ## Routing
 
