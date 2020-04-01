@@ -136,7 +136,9 @@ Contains top level layout components. These will typically define your app shell
 
 #### `routes`
 
-Same semantics as the Next.js `pages` folder, just with a better name. All files in here are mapped to the url corrosponding to their file paths.
+This directory is optional. While you can place any route files here, we recommend placing route files inside `app`.
+
+This has the same semantics as the Next.js `pages` folder, just with a better name. All files in here are mapped to the url corrosponding to their file paths.
 
 Files in `routes/api` are exposed as API endpoints.
 
