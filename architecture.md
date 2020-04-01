@@ -1,23 +1,18 @@
 # RFC: Blitz App Architecture
 
+Blitz is for building tiny to large fullstack database-backed applications that have one or more graphical user interfaces like web or mobile apps.
 
-We think the architecture proposed in this RFC is the ideal solution to meet all the following goals:
+### Foundational Principles
 
-1. Simple
-2. Composable
-3. Flexible
-4. Powerful (no arbitrary restrictions)
-5. Highly scalable
-6. Abstract away the entire network layer (no need to build an API)
-7. Fully static types (no compile step needed for Typescript types)
-8. Future mobile support (Run a Blitz app on multiple platforms, like web and react-native)
-9. GraphQL Ready
+1. Fullstack & Monolithic
+2. API Not Required
+3. Convention over Configuration
+4. Loose Opinions
+5. Easy to Start, Easy to Scale
+6. Stability
+7. Community over Code
 
-## Scope
-
-Blitz is a fullstack framework designed for database backed applications that can be accessed via multiple platforms, such as web, mobile apps, and a GraphQL API.
-
-Blitz is designed to be extremely easy for beginners while at the same time being highly scalable and flexible for advanced users and very large apps.
+Read the [Blitz Manifesto](https://github.com/blitz-js/blitz/blob/canary/MANIFESTO.md) for more details on each principle.
 
 ## Architecture Fundamentals
 
