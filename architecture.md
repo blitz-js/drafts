@@ -261,7 +261,7 @@ export default async function(data: ProductCreateInput[], ctx?: Context) {
 
 ### E. Auto Generated HTTP API
 
-All queries and mutations will be automatically exposed at a unique URL, such as `/api/product/getProduct` and `/api/product/updateProduct`. The exact URL details are to be determined.  
+All queries and mutations will be automatically exposed at a unique URL, such as `/api/product/queries/getProduct` and `/api/product/mutations/updateProduct`.
 
 ### F. Middleware
 
