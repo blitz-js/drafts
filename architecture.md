@@ -20,7 +20,7 @@ Blitz is designed for tiny to large database-backed applications that have one o
 
 ## Table of Contents
 
-1. Architecture Fundamentals
+1. [Architecture Fundamentals](#1-architecture-fundamentals)
 2. User Interface
 3. Data Schema
 4. Computation
