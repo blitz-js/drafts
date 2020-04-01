@@ -1,4 +1,4 @@
-# [RFC] Blitz File Structure & Routing Conventions
+# [RFC] Blitz File Structure & Routing
 
 **The purpose of this RFC is to gain consensus on the Blitz file structure and routing.**
 
@@ -10,67 +10,70 @@
 ## File Structure
 
 ```
-├── app
-│   ├── projects
-│   │   ├── components
+├── app/
+│   ├── projects/
+│   │   ├── components/
 │   │   │   ├── Project.js
 │   │   │   ├── ProjectForm.js
 │   │   │   └── Projects.js
-│   │   ├── mutations
+│   │   ├── mutations/
 │   │   │   ├── createProject.js
 │   │   │   ├── deleteProject.js
 │   │   │   └── updateProject.js
-│   │   └── queries
-│   │       ├── getProject.js
-│   │       └── getProjects.js
-│   └── tasks
-│       ├── components
+│   │   ├── queries/
+│   │   │   ├── getProject.js
+│   │   │   └── getProjects.js
+│   │   └── routes/
+│   │       └── projects/
+│   │           ├── [id]/
+│   │           │   └── edit.js
+│   │           ├── [id].js
+│   │           ├── index.js
+│   │           └── new.js
+│   └── tasks/
+│       ├── components/
 │       │   ├── Task.js
 │       │   ├── TaskForm.js
 │       │   └── Tasks.js
-│       ├── mutations
+│       ├── mutations/
 │       │   ├── createTask.js
 │       │   ├── deleteTask.js
 │       │   └── updateTask.js
-│       └── queries
-│           ├── getTask.js
-│           └── getTasks.js
+│       ├── queries/
+│       │   ├── getTask.js
+│       │   └── getTasks.js
+│       └── routes/
+│           └── projects/
+│               └── [projectId]/
+│                   └── tasks/
+│                       ├── [id]/
+│                       │   └── edit.js
+│                       ├── [id].js
+│                       ├── index.js
+│                       └── new.js
 ├── blitz.config.js
-├── db
+├── db/
 │   ├── index.js
-│   ├── migrations
+│   ├── migrations/
 │   └── schema.prisma
-├── integrations
-├── jobs
-├── layouts
+├── integrations/
+├── jobs/
+├── layouts/
 │   ├── Authenticated.js
 │   └── Public.js
-├── public
+├── public/
 │   └── favicon.ico
-├── routes
+├── routes/
 │   ├── about.js
-│   ├── api
+│   ├── api/
 │   │   └── stripe-webhook.js
 │   ├── features.js
 │   ├── index.js
 │   ├── log-in.js
 │   ├── pricing.js
-│   ├── projects
-│   │   ├── [id]
-│   │   │   └── edit.js
-│   │   ├── [id].js
-│   │   ├── [projectId]
-│   │   │   └── tasks
-│   │   │       ├── [id]
-│   │   │       │   └── edit.js
-│   │   │       ├── [id].js
-│   │   │       ├── index.js
-│   │   │       └── new.js
-│   │   ├── index.js
-│   │   └── new.js
 │   └── sign-up.js
-├── tests
-└── utils
+├── tests/
+└── utils/
 
 ```
 
@@ -118,11 +121,18 @@ Contains all those pesky little files and functions every project accumulates
 
 A configuration file with the same format as `next.config.js`
 
-## Routing Conventions
+## Routing
 
 Blitz uses the [file-system based router provided by Next.js](https://nextjs.org/docs/routing/introduction).
 
-We copied this convention from Ruby on Rails, where it has stood the test of time. The Blitz CLI will use these conventions for code scaffolding. If you don't like them, you are free to deviate and do anything you want.
+- All components in `routes/` are mapped to a URL.
+- All http handlers in `routes/api` are mapped to a URL.
+- Queries and mutations are automatically exposed as an API endpoint
+  - The `app/projects/queries/getProjects.js` query will be exposed at `/api/projects/queries/getProjects`
+
+### Conventions
+
+We copied the conventions from Ruby on Rails, where it has stood the test of time. The Blitz CLI will use these conventions for code scaffolding. If you don't like them, you are free to deviate and do anything you want.
 
 - Entity names are plural
 - Each of the following have their own page: entity index, single entity show page, new entity page, and edit entity page
