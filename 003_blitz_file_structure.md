@@ -9,8 +9,29 @@
 
 ## File Structure
 
+Our guiding principle on file structure is that files that change together should live together.
+
+
 ```
 ├── app/
+│   ├── components/
+│   │   ├── Button.js
+│   │   ├── Image.js
+│   │   ├── Input.js
+│   │   ├── Link.js
+│   │   └── Text.js
+│   ├── marketing/
+│   │   ├── components/
+│   │   │   ├── FeatureSection.js
+│   │   │   ├── Footer.js
+│   │   │   ├── Header.js
+│   │   │   ├── Screenshot.js
+│   │   │   └── Testimonial.js
+│   │   └── routes/
+│   │       ├── about.js
+│   │       ├── features.js
+│   │       ├── index.js
+│   │       └── pricing.js
 │   ├── projects/
 │   │   ├── components/
 │   │   │   ├── Project.js
@@ -18,8 +39,11 @@
 │   │   │   └── Projects.js
 │   │   ├── mutations/
 │   │   │   ├── createProject.js
+│   │   │   ├── createProject.test.js
 │   │   │   ├── deleteProject.js
-│   │   │   └── updateProject.js
+│   │   │   ├── deleteProject.test.js
+│   │   │   ├── updateProject.js
+│   │   │   └── updateProject.test.js
 │   │   ├── queries/
 │   │   │   ├── getProject.js
 │   │   │   └── getProjects.js
@@ -30,27 +54,37 @@
 │   │           ├── [id].js
 │   │           ├── index.js
 │   │           └── new.js
-│   └── tasks/
-│       ├── components/
-│       │   ├── Task.js
-│       │   ├── TaskForm.js
-│       │   └── Tasks.js
-│       ├── mutations/
-│       │   ├── createTask.js
-│       │   ├── deleteTask.js
-│       │   └── updateTask.js
-│       ├── queries/
-│       │   ├── getTask.js
-│       │   └── getTasks.js
-│       └── routes/
-│           └── projects/
-│               └── [projectId]/
-│                   └── tasks/
-│                       ├── [id]/
-│                       │   └── edit.js
-│                       ├── [id].js
-│                       ├── index.js
-│                       └── new.js
+│   ├── routes/
+│   │   ├── api/
+│   │   │   └── stripe-webhook.js
+│   │   ├── dashboard.js
+│   │   ├── log-in.js
+│   │   ├── settings.js
+│   │   └── sign-up.js
+│   ├── tasks/
+│   │   ├── components/
+│   │   │   ├── Task.js
+│   │   │   ├── TaskForm.js
+│   │   │   └── Tasks.js
+│   │   ├── mutations/
+│   │   │   ├── createTask.js
+│   │   │   ├── deleteTask.js
+│   │   │   └── updateTask.js
+│   │   ├── queries/
+│   │   │   ├── getTask.js
+│   │   │   └── getTasks.js
+│   │   └── routes/
+│   │       └── projects/
+│   │           └── [projectId]/
+│   │               └── tasks/
+│   │                   ├── [id]/
+│   │                   │   └── edit.js
+│   │                   ├── [id].js
+│   │                   ├── index.js
+│   │                   └── new.js
+│   └── tests/
+│       ├── userAuthentication.js
+│       └── userOnboarding.js
 ├── blitz.config.js
 ├── db/
 │   ├── index.js
@@ -64,24 +98,25 @@
 ├── public/
 │   └── favicon.ico
 ├── routes/
-│   ├── about.js
-│   ├── api/
-│   │   └── stripe-webhook.js
-│   ├── features.js
-│   ├── index.js
-│   ├── log-in.js
-│   ├── pricing.js
-│   └── sign-up.js
-├── tests/
 └── utils/
-
 ```
 
 - All top level folders are automatically aliased. So for example you can import from `app/projects/queries/getProject` from anywhere in our app.
 
 #### `app`
 
-Contains all your core application code including queries, mutations, routes, and tests. Folders can be nested and organized any way you want. For example, `images/` and `videos/` could be nested inside `media/`.
+Contains all your core application code.
+
+The file structured nested inside `app` can be anything you want, but there are some folder names with special behaviour detailed below.
+
+Typically you will two types of "container" directories inside `app`: **entity** directories like `projects/` and `tasks/` and **context** directories like `marketing/` or `/admin`.
+
+#### Special Blitz Folders
+
+Special Blitz folders can exist at any level of the hierarchy inside `app`.
+
+- `routes/` and `routes/api/` are for exposing a React component or API handler at a specific URL. Routing inside these folders is always from the application root.
+- `queries/` and `mutations/` are for your Blitz queries and mutations. Each query and mutation is exposed at a URL corrosponding to it's file path.
 
 #### `db`
 
