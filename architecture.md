@@ -331,7 +331,7 @@ Although Blitz doesn't use GraphQL, all your Blitz queries and mutations can eas
 
 ## 10. SSR?
 
-The initial Blitz announcement relied heavily on SSR. With the architecture in this RFC, SSR is no longer required or important.
+The initial Blitz announcement relied heavily on SSR. With the architecture in this RFC, SSR is no longer required (but SSR is still supported!).
 
 You have two choices for the initial visit to an authenticated page: (1) SSR or (2) Static page shell with dynamic data populated on the client. Once the first page is loaded in the browser, all subsequent pages are rendered client side, regardless of how the first visit was rendered.
 
