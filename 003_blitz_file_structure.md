@@ -1,6 +1,6 @@
 # [RFC] Blitz File Structure & Routing
 
-**The purpose of this RFC is to gain consensus on the Blitz file structure and routing.**
+**The purpose of this RFC is to gather as much feedback as possible.**
 
 **We welcome all feedback, whether good or bad! This is your chance to ensure Blitz meets the needs of your company or project.**
 
