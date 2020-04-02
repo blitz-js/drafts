@@ -2,7 +2,7 @@
 
 **The purpose of this RFC is to gather as much feedback as possible before building everything outlined below.**
 
-**We welcome all feedback, whether good or bad! This is your chance to ensure Blitz has the features needed for your company or project.**
+**We welcome all feedback, whether good or bad! This is your chance to ensure Blitz meets the needs for your company or project.**
 
 
 <hr/>
