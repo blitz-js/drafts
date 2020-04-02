@@ -11,7 +11,10 @@
 
 Blitz is defining a standard file structure to answer the age old question of "How should I organize my react app files?"
 
-Our guiding principle on file structure is that files that change together should live together.
+#### Guiding Principles
+
+1. Files that change together should live together.
+2. Minimal requirements, maximum flexibility
 
 
 ```
@@ -159,6 +162,7 @@ A configuration file with the same format as `next.config.js`
 
 - All top level folders are automatically aliased. So for example you can import from `app/projects/queries/getProject` from anywhere in our app.
 - The Blitz CLI will have a `routes` command that makes it easy to see a full aggregated view of all your app routes.
+
 
 ## Routing
 
