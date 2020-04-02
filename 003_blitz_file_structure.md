@@ -25,6 +25,16 @@ Blitz is defining a standard file structure to answer the age old question of "H
 │   │   ├── Input.js
 │   │   ├── Link.js
 │   │   └── Text.js
+│   ├── layouts/
+│   │   ├── Authenticated.js
+│   │   └── Public.js
+│   ├── routes/  (same functionality as Next.js pages/)
+│   │   ├── dashboard.js
+│   │   ├── log-in.js
+│   │   ├── settings.js
+│   │   ├── sign-up.js
+│   │   └── api/
+│   │       └── stripe-webhook.js
 │   ├── marketing/
 │   │   ├── components/
 │   │   │   ├── FeatureSection.js
@@ -32,7 +42,7 @@ Blitz is defining a standard file structure to answer the age old question of "H
 │   │   │   ├── Header.js
 │   │   │   ├── Screenshot.js
 │   │   │   └── Testimonial.js
-│   │   └── routes/
+│   │   └── routes/  (same functionality as Next.js pages/)
 │   │       ├── about.js
 │   │       ├── features.js
 │   │       ├── index.js
@@ -52,20 +62,13 @@ Blitz is defining a standard file structure to answer the age old question of "H
 │   │   ├── queries/
 │   │   │   ├── getProject.js
 │   │   │   └── getProjects.js
-│   │   └── routes/
+│   │   └── routes/  (same functionality as Next.js pages/)
 │   │       └── projects/
 │   │           ├── [id]/
 │   │           │   └── edit.js
 │   │           ├── [id].js
 │   │           ├── index.js
 │   │           └── new.js
-│   ├── routes/
-│   │   ├── api/
-│   │   │   └── stripe-webhook.js
-│   │   ├── dashboard.js
-│   │   ├── log-in.js
-│   │   ├── settings.js
-│   │   └── sign-up.js
 │   ├── tasks/
 │   │   ├── components/
 │   │   │   ├── Task.js
@@ -78,7 +81,7 @@ Blitz is defining a standard file structure to answer the age old question of "H
 │   │   ├── queries/
 │   │   │   ├── getTask.js
 │   │   │   └── getTasks.js
-│   │   └── routes/
+│   │   └── routes/  (same functionality as Next.js pages/)
 │   │       └── projects/
 │   │           └── [projectId]/
 │   │               └── tasks/
@@ -90,36 +93,34 @@ Blitz is defining a standard file structure to answer the age old question of "H
 │   └── tests/
 │       ├── userAuthentication.js
 │       └── userOnboarding.js
-├── blitz.config.js
 ├── db/
-│   ├── index.js
+│   ├── index.js  (exports your db client)
 │   ├── migrations/
 │   └── schema.prisma
 ├── integrations/
+│   └── twilio.js 
 ├── jobs/
-├── layouts/
-│   ├── Authenticated.js
-│   └── Public.js
+│   └── generateReport.js 
 ├── public/
 │   └── favicon.ico
-├── routes/
-└── utils/
+├── routes/  (same functionality as Next.js pages/)
+├── utils/
+└── blitz.config.js  (same format as next.config.js)
 ```
 
 #### `app`
 
 Contains all your core application code.
 
-The file structure nested inside `app` can be anything you want, except for a few special folders detailed below.
-
-Typically you will have two types of "container" directories inside `app`: **entity** directories like `projects/` and `tasks/` and **context** directories like `marketing/` or `admin/`.
-
-##### Special Folders
-
-Special Blitz folders can exist at any level of the hierarchy inside `app`.
-
-- `routes/` and `routes/api/` are for exposing a React component or API handler at a specific URL. Routing inside these folders is always from the application root. These folders follow the same semantics as the Next.js `pages/` directory, just with a better name.
-- `queries/` and `mutations/` are for your Blitz queries and mutations. Each query and mutation is exposed at a URL corresponding to its file path.
+- The file structure nested inside `app` can be anything you want, but we reccomend the following:
+- Typically you will have two types of "container" directories inside `app` that can be nested or combined any way you want:
+  - **entity** directories like `projects/` and `tasks/` 
+  - **context** directories like `marketing/` or `admin/`.
+- Special Folder Names
+  - Can exist at any level of the hierarchy inside `app`.
+  - `routes/` for defining your pages and API routes. Follows the same semantics as the Next.js `pages/` directory.
+  - `queries/` and `mutations/` are for your Blitz queries and mutations. Each query and mutation is exposed at a URL corresponding to its file path.
+  
 
 #### `db`
 
@@ -133,17 +134,14 @@ Contains third-party integration code. Ex: `auth0.js`, `twilio.js`, etc. These f
 
 Asynchronous background job processing is TBD, but processing logic will live here.
 
-#### `layouts`
-
-Contains top level layout components. These will typically define your app shell and top level navigation menus. Details surrounding these are TBD.
-
 #### `routes`
 
-This directory is optional. While you can place any route files here, we recommend placing route files inside `app`.
+The top level `routes` folder and all nested `routes` folders inside `app` are merged together at build time. The build will fail if the same route is defined in two places. The Blitz CLI will have routes command to easily see all your app routes at once, including your queries and mutations.
 
-This has the same semantics as the Next.js `pages` folder, just with a better name. All files in here are mapped to the url corresponding to their file paths.
-
-Files in `routes/api` are exposed as API endpoints.
+- This top level routes directory is optional. 
+- Has the same semantics as the Next.js `pages` folder. All files in here are mapped to the url corresponding to their file paths.
+- Files in `routes/api` are exposed as API endpoints.
+- While you can place any route files here, we recommend placing route files inside `app`. But if you want, you can instead place all your route files in this top level folders instead of being spread out in various directories inside `app`
 
 #### `public`
 
