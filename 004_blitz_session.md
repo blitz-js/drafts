@@ -18,11 +18,6 @@
     - Sync session data across devices
     - Keep user session data intact across login / logout (to be thought about)
 
-## Implementation detail
-This section highlights what the user will need to do in order to setup sessions. The aim here is to make it as simple and transparent to the user as possible.
-
- TODO
-
 ## Default methodology:
 #### Creation of a session
 - After login, the backend will issue an opaque token. This will be a random, 32 character long `string`. The backend will also issue an anti-csrf token which will also be 32 characters long. The final access token will be a concatenation of these two strings. 
@@ -94,3 +89,142 @@ This extra implementation detail can be handled automatically by the framework i
 
 #### Why is this more secure than the default method?
 This question is answered in this 2 part [blog post](https://supertokens.io/blog/all-you-need-to-know-about-user-session-security). This method also detects session hijacking which can occur in all the following ways as mentioned [here](https://docs.google.com/spreadsheets/d/14h9qd2glE31HSGUofx43XwfJHZNzgkdCwEKl-3UcXLE/edit?usp=sharing).
+
+## Implementation detail for the default methodology
+### Init
+If we can have default values for all config params, then the user does not have to call this init function (unless they want to change the defaults). The params for this will be discussed in the "Config params" section below.
+```ts
+import Session from 'blitz-supertokens'
+// on app start
+
+Session.init({
+    // config params
+});
+```
+
+### Creating a session
+Function signature
+```ts
+Session.createNewSession(userId: string, sessionDataInDb?: Object, infoThatFrontendCanRead?: Object)
+```
+
+A middleware will add the `createNewSession` function to the `context` object. **The user does not have to implement this middleware.**
+
+Middleware (This needs to be in all queries that does not need a session object in the context)
+```ts
+// /some/path/special.ts
+import {Context, ApiRequest, ApiResponse} from 'blitz/types'
+import Session from 'blitz-supertokens'
+
+type CreateNewSessionFunc = {
+    createNewSession: (userId: string, sessionDataInDb?: Object, infoThatFrontendCanRead?: Object) => Promise<Session.Type.ValidSession>
+}
+
+export const middleware = [
+  (req: NextApiRequest, res: NextApiResponse): CreateNewSessionFunc => {
+    return {
+        createNewSession: (userId: string, sessionDataInDb?: Object, infoThatFrontendCanRead?: Object) => {
+            return Session.createNewSession(res, userId, sessionDataInDb, infoThatFrontendCanRead);
+        }
+    }
+  }
+]
+
+type SpecialContext = Context & CreateNewSessionFunc
+```
+
+
+Example
+```ts
+// /some/path/login.ts
+
+export default async function login(args: UserCredentials, ctx: Context) {
+    // Verify that UserCredentials are correct.
+    let userId = // get userId from DB
+
+    let infoThatFrontendCanRead = {
+        // ...
+    };
+
+    let sessionDataInDb = {
+        // ...
+    };
+
+    try {
+        await ctx.createNewSession(userId, sessionDataInDb, infoThatFrontendCanRead);
+
+        // successfully created a session.
+    } catch (err) {
+        // log and throw an error
+    }
+}
+```
+
+### Verifying a session
+This is a middleware that is automatically applied to all APIs that need session verification. **The user does not have to implement this middleware.**
+
+Function signature
+```ts
+type ValidSession = { 
+    userId: string,
+    revokeSession: () => Promise<void>,
+    sessionHandle: string
+}
+
+Session.getSession(req: NextApiRequest, res: NextApiResponse, enableCsrfProtection: boolean): ValidSession;
+```
+
+Middleware
+```ts
+// /some/path/special.ts
+import {Context, ApiRequest, ApiResponse} from 'blitz/types'
+import Session from 'blitz-supertokens'
+
+// this middleware will be applied to all queries that require a session object
+export const middleware = [
+  (req: NextApiRequest, res: NextApiResponse): Session.Types.ValidSession => {
+    try {
+        let enableCsrfProtection = req.method !== "GET";
+        
+        return await Session.getSession(req, res, enableCsrfProtection);
+    } catch (err) {
+        if (err.type === Session.Error.UNAUTHORISED) {
+            res.status(440).send();
+        } else {
+            // logging of what the actual error is
+            res.status(500).send()
+        }
+    }
+  }
+]
+
+type SpecialContext = Context & Session.Types.ValidSession
+```
+
+### Getting and setting session data
+TODO
+
+### Revoking a session
+TODO
+
+### Using session handle
+TODO
+
+### TODO
+- Anonymous session
+- Compatibility of secure and default method so that the user can switch anytime
+- Authorisation / user roles.
+
+
+## Implementation detail for the more secure methodology
+TODO
+
+## Config params
+#### Default methodology
+TODO
+
+#### More secure methodology
+TODO
+
+## Frontend requirements
+TODO
