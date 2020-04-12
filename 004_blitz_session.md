@@ -102,39 +102,58 @@ Session.init({
 });
 ```
 
-### Creating a session
-Function signature
-```ts
-Session.createNewSession(userId: string, sessionDataInDb?: Object, infoThatFrontendCanRead?: Object)
-```
+### Session middleware
+A middleware will manage the verification of a session. **The user does not have to implement this middleware.**
 
-A middleware will add the `createNewSession` function to the `context` object. **The user does not have to implement this middleware.**
-
-Middleware (This needs to be in all queries that does not need a session object in the context)
 ```ts
 // /some/path/special.ts
 import {Context, ApiRequest, ApiResponse} from 'blitz/types'
 import Session from 'blitz-supertokens'
 
-type CreateNewSessionFunc = {
-    createNewSession: (userId: string, sessionDataInDb?: Object, infoThatFrontendCanRead?: Object) => Promise<Session.Type.ValidSession>
+type ValidSession = { 
+    isAnonymous: false,
+    userId: string,
+    role?: string,
+    revoke: () => Promise<void>,
+    getData: () => Promise<object>,
+    setData: (data: object) => Promise<void>,
+    handle: string
+} | {
+    isAnonymous: true,
+    create: (userId: string, role?: string, sessionDataInDb?: Object, infoThatFrontendCanRead?: Object) => Promise<ValidSession>
+    getData: () => Promise<object>,
+    setData: (data: object) => Promise<void>,
+    handle: string
 }
 
 export const middleware = [
-  (req: NextApiRequest, res: NextApiResponse): CreateNewSessionFunc => {
-    return {
-        createNewSession: (userId: string, sessionDataInDb?: Object, infoThatFrontendCanRead?: Object) => {
-            return Session.createNewSession(res, userId, sessionDataInDb, infoThatFrontendCanRead);
+  (req: NextApiRequest, res: NextApiResponse): ValidSession => {
+    try {
+        let enableCsrfProtection = req.method !== "GET";
+        
+        // If successful, isAnonymous: false
+        return await Session.getSession(req, res, enableCsrfProtection);
+    } catch (err) {
+        if (err.type === Session.Error.UNAUTHORISED) {
+            if (/* Error due to CSRF check failing*/) {
+                throw new AntiCSRFTokenFailure();
+            }
+        } else {
+            throw err;
         }
     }
+
+    // we want to create an anonymous JWT based session.
+    
+    return Session.createAnonymousSession(req, res);
   }
 ]
 
-type SpecialContext = Context & CreateNewSessionFunc
+type SpecialContext = Context & ValidSession
 ```
 
 
-Example
+### User login
 ```ts
 // /some/path/login.ts
 
@@ -151,7 +170,7 @@ export default async function login(args: UserCredentials, ctx: Context) {
     };
 
     try {
-        await ctx.createNewSession(userId, sessionDataInDb, infoThatFrontendCanRead);
+        await ctx.session.create(userId, sessionDataInDb, infoThatFrontendCanRead);
 
         // successfully created a session.
     } catch (err) {
@@ -160,49 +179,27 @@ export default async function login(args: UserCredentials, ctx: Context) {
 }
 ```
 
-### Verifying a session
-This is a middleware that is automatically applied to all APIs that need session verification. **The user does not have to implement this middleware.**
-
-Function signature
+### Getting userId, setting and getting session data
 ```ts
-type ValidSession = { 
-    userId: string,
-    revokeSession: () => Promise<void>,
-    sessionHandle: string
-}
+// /some/path/example.ts
 
-Session.getSession(req: NextApiRequest, res: NextApiResponse, enableCsrfProtection: boolean): ValidSession;
-```
+export default async function example(args: SomArgs, ctx: Context) {
 
-Middleware
-```ts
-// /some/path/special.ts
-import {Context, ApiRequest, ApiResponse} from 'blitz/types'
-import Session from 'blitz-supertokens'
-
-// this middleware will be applied to all queries that require a session object
-export const middleware = [
-  (req: NextApiRequest, res: NextApiResponse): Session.Types.ValidSession => {
-    try {
-        let enableCsrfProtection = req.method !== "GET";
-        
-        return await Session.getSession(req, res, enableCsrfProtection);
-    } catch (err) {
-        if (err.type === Session.Error.UNAUTHORISED) {
-            res.status(440).send();
-        } else {
-            // logging of what the actual error is
-            res.status(500).send()
-        }
+    // either we have the check below, or we provide a way for the user to define that this query must be called only if a non anonymous session exists (otherwise throw an error).
+    if (!ctx.session.isAnonymous) {
+       let userId = ctx.session.userId;
     }
-  }
-]
 
-type SpecialContext = Context & Session.Types.ValidSession
+    let data = await ctx.session.getData();
+
+    let newData = {
+        ...data,
+        newKey: "newVal"
+    };
+
+    await ctx.session.setData(newData);
+}
 ```
-
-### Getting and setting session data
-TODO
 
 ### Revoking a session
 TODO
