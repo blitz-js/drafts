@@ -177,11 +177,10 @@ export default async function login(args: UserCredentials, ctx: Context) {
 ```ts
 // /some/path/example.ts
 
-export default async function example(args: SomArgs, ctx: Context) {
+export default async function exampleQuery(args: SomArgs, ctx: Context) {
     if (ctx.session.role !== "public") {
        let userId = ctx.session.userId;
     }
-
     let data = await ctx.session.getData();
 
     let newData = {
@@ -194,7 +193,16 @@ export default async function example(args: SomArgs, ctx: Context) {
 ```
 
 ### Revoking a session
-TODO
+```ts
+// /some/path/example.ts
+
+export default async function exampleQuery(args: SomArgs, ctx: Context) {
+
+    // the following will take care of clearing all cookies.
+    // for anonymous sessions, this is a noop.
+    await ctx.session.revoke();
+}
+```
 
 ### Using session handle
 TODO
