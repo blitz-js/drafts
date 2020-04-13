@@ -29,6 +29,7 @@
     - expiry time
     - session data (this can be manipulated by the user).
 - A cronjob will remove all expired tokens on a regular basis.
+- Creating a new session while another one exists results in the headers / cookies changing. However, the older session will still be alive.
 
 #### Session verification
 - For each request that requires CSRF protection, the frontend must read the localstorage and send the anti-csrf token in the request header.
@@ -110,28 +111,21 @@ A middleware will manage the verification of a session. **The user does not have
 import {Context, ApiRequest, ApiResponse} from 'blitz/types'
 import Session from 'blitz-supertokens'
 
-type ValidSession = { 
-    isAnonymous: false,
-    userId: string,
-    role?: string,
-    revoke: () => Promise<void>,
-    getData: () => Promise<object>,
-    setData: (data: object) => Promise<void>,
-    handle: string
-} | {
-    isAnonymous: true,
-    create: (userId: string, role?: string, sessionDataInDb?: Object, infoThatFrontendCanRead?: Object) => Promise<ValidSession>
+type SessionType = { 
+    userId?: string,
+    role: string,  // will be "public" if session is anonymous. If the user does not specify a role, the default value will be "genericUser"
+    create: (userId: string, role?: string, sessionDataInDb?: Object, infoThatFrontendCanRead?: Object) => Promise<SessionType>,
+    revoke: () => Promise<void>,    // if anonymous, this will fo nothing.
     getData: () => Promise<object>,
     setData: (data: object) => Promise<void>,
     handle: string
 }
 
 export const middleware = [
-  (req: NextApiRequest, res: NextApiResponse): ValidSession => {
+  (req: NextApiRequest, res: NextApiResponse): SessionType => {
     try {
         let enableCsrfProtection = req.method !== "GET";
         
-        // If successful, isAnonymous: false
         return await Session.getSession(req, res, enableCsrfProtection);
     } catch (err) {
         if (err.type === Session.Error.UNAUTHORISED) {
@@ -144,12 +138,12 @@ export const middleware = [
     }
 
     // we want to create an anonymous JWT based session.
-    
+    // the role here will be "public"
     return Session.createAnonymousSession(req, res);
   }
 ]
 
-type SpecialContext = Context & ValidSession
+type SpecialContext = Context & SessionType
 ```
 
 
@@ -170,7 +164,7 @@ export default async function login(args: UserCredentials, ctx: Context) {
     };
 
     try {
-        await ctx.session.create(userId, sessionDataInDb, infoThatFrontendCanRead);
+        await ctx.session.create(userId, "admin", sessionDataInDb, infoThatFrontendCanRead);
 
         // successfully created a session.
     } catch (err) {
@@ -184,9 +178,7 @@ export default async function login(args: UserCredentials, ctx: Context) {
 // /some/path/example.ts
 
 export default async function example(args: SomArgs, ctx: Context) {
-
-    // either we have the check below, or we provide a way for the user to define that this query must be called only if a non anonymous session exists (otherwise throw an error).
-    if (!ctx.session.isAnonymous) {
+    if (ctx.session.role !== "public") {
        let userId = ctx.session.userId;
     }
 
@@ -211,6 +203,7 @@ TODO
 - Anonymous session
 - Compatibility of secure and default method so that the user can switch anytime
 - Authorisation / user roles.
+- Session token regeneration
 
 
 ## Implementation detail for the more secure methodology
