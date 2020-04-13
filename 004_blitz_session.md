@@ -200,6 +200,8 @@ export default async function exampleQuery(args: SomArgs, ctx: Context) {
 
     // the following will take care of clearing all cookies.
     // for anonymous sessions, this is a noop.
+
+    // if the session does not exist, the function below will not throw any error.
     await ctx.session.revoke();
 }
 ```
