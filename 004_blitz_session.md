@@ -112,12 +112,17 @@ import {Context, ApiRequest, ApiResponse} from 'blitz/types'
 import Session from 'blitz-supertokens'
 
 type SessionType = { 
-    userId?: string,
-    role: string,  // will be "public" if session is anonymous. If the user does not specify a role, the default value will be "genericUser"
-    create: (userId: string, role?: string, sessionDataInDb?: Object, infoThatFrontendCanRead?: Object) => Promise<SessionType>,
+    userId: string | null, // will be null if anonymous
+    role: string,  // will be "public" if session is anonymous.
+    create: ({
+        userId: string
+        role: string
+        privateData?: Object
+        publicData?: Object
+    }) => Promise<SessionType>,
     revoke: () => Promise<void>,    // if anonymous, this will fo nothing.
-    getData: () => Promise<object>,
-    setData: (data: object) => Promise<void>,
+    getPrivateData: () => Promise<object>,
+    setPrivateData: (data: object) => Promise<void>,
     handle: string
 }
 
@@ -155,16 +160,21 @@ export default async function login(args: UserCredentials, ctx: Context) {
     // Verify that UserCredentials are correct.
     let userId = // get userId from DB
 
-    let infoThatFrontendCanRead = {
+    let publicData = {
         // ...
     };
 
-    let sessionDataInDb = {
+    let privateData = {
         // ...
     };
 
     try {
-        await ctx.session.create(userId, "admin", sessionDataInDb, infoThatFrontendCanRead);
+        await ctx.session.create({
+            userId, 
+            role: "admin", 
+            publicData, 
+            privateData
+        });
 
         // successfully created a session.
     } catch (err) {
@@ -178,17 +188,18 @@ export default async function login(args: UserCredentials, ctx: Context) {
 // /some/path/example.ts
 
 export default async function exampleQuery(args: SomArgs, ctx: Context) {
-    if (ctx.session.role !== "public") {
-       let userId = ctx.session.userId;
+    if (ctx.session.userId !== null) {
+        // session is not anonymous
+        let userId = ctx.session.userId;
     }
-    let data = await ctx.session.getData();
+    let data = await ctx.session.getPrivateData();
 
     let newData = {
         ...data,
         newKey: "newVal"
     };
 
-    await ctx.session.setData(newData);
+    await ctx.session.setPrivateData(newData);
 }
 ```
 
@@ -199,6 +210,7 @@ export default async function exampleQuery(args: SomArgs, ctx: Context) {
 export default async function exampleQuery(args: SomArgs, ctx: Context) {
 
     // the following will take care of clearing all cookies.
+    
     // for anonymous sessions, this is a noop.
 
     // if the session does not exist, the function below will not throw any error.
