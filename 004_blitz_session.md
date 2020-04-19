@@ -123,7 +123,12 @@ type SessionType = {
     revoke: () => Promise<void>,    // if anonymous, this will fo nothing.
     getPrivateData: () => Promise<object>,
     setPrivateData: (data: object) => Promise<void>,
-    handle: string
+    getPublicData: () => object,
+    handle: string,
+    regenerate({
+        role: string, 
+        publicData?: Object 
+    }) => Promise<SessionType>
 }
 
 export const middleware = [
@@ -133,9 +138,9 @@ export const middleware = [
         
         return await Session.getSession(req, res, enableCsrfProtection);
     } catch (err) {
-        if (err.type === Session.Error.UNAUTHORISED) {
-            if (/* Error due to CSRF check failing*/) {
-                throw new AntiCSRFTokenFailure();
+        if (Session.Error.isUnauthorised(err)) {
+            if (Session.Error.isAntiCSRFTokenFailed(err)) {
+                throw err;
             }
         } else {
             throw err;
@@ -160,6 +165,7 @@ export default async function login(args: UserCredentials, ctx: Context) {
     // Verify that UserCredentials are correct.
     let userId = // get userId from DB
 
+    // publicData will contain userId and role along with any other information provided by the user here. If they provide userId and role according in this data, it will override the userId and role.
     let publicData = {
         // ...
     };
@@ -219,13 +225,92 @@ export default async function exampleQuery(args: SomArgs, ctx: Context) {
 ```
 
 ### Using session handle
-TODO
+- One can get all session handles belonging to a user. Using this, they can: 
+    - get and set private data of that session handle
+    - revoke that session handle - logging the user out of that device
+- One can revoke all sessions belonging to a user.
 
-### TODO
-- Anonymous session
-- Compatibility of secure and default method so that the user can switch anytime
-- Authorisation / user roles.
-- Session token regeneration
+```ts
+import Session from "blitz-supertokens";
+// /some/path/example.ts
+
+export default async function exampleQuery(args: SomArgs, ctx: Context) {
+
+    // this is a unique ID per session
+    let sessionHandle = ctx.session.handle;
+
+    let otherSessionsForThisUser: string[] = await Session.getAllSessionHandlesForUser(ctx.session.userId);
+
+    for (let i = 0; i < otherSessionsForThisUser.length; i++) {
+
+        // other devices the user has logged in with
+        let currSession = otherSessionsForThisUser[i];
+
+        try {
+
+            // can use publicData to get the role or other public info of this session.
+            let publicData = await Session.getPublicData(currSession);
+
+
+            // get private session data for currSession
+            let sessionData = await Session.getPrivateData(currSession);
+
+            let newSessionData = {
+                newKey: "newValue",
+                ...sessionData
+            };
+
+            // change private data for currSession
+            /*
+            NOTE: This is not automatically synchronised with other setPrivateData for this session. The user will have to take care of that on their own.
+            */
+            await Session.setPrivateData(currSession, newSessionData);
+
+            // log user out of this specific device
+            await Session.revokeSessions([currSession]);
+        } catch (err) {
+            if (Session.Error.isUnauthorised(err)) {
+                // currSession session has been revoked
+            } else {
+                // some generic error.
+            }
+        }
+
+        await Session.revokeAllSessionsForUser(ctx.session.userId);
+
+    } 
+}
+```
+
+### Session regeneration
+This is a security best practice when changing any `publicData`. This means that if a user's role has to change, then their session tokens will change too.
+
+```ts
+import Session from "blitz-supertokens";
+// /some/path/example.ts
+
+export default async function exampleQuery(args: SomArgs, ctx: Context) {
+
+    let publicData = ctx.session.getPublicData();
+
+    let newPublicData = {
+        ...publicData,
+        newKey: "newVal"
+    }
+
+    let regeneratedSession = await ctx.regenerate({
+        role: "admin", 
+        publicData: newPublicData
+    });
+
+    /* 
+    - At this point, new tokens have been set in the response header. 
+    - The old access token has not been revoked yet. This is so that in case of any failure of this API, the user doesn't get logged out. 
+    - The old access tokens will be revoked when the new one is used. Ideally this requires synchronisation from the frontend when calling this API, however, that can be ignored since regeneration is a very rare situation. In the worst case (very rare), the user may get logged out if multiple, parallel calls to this API are made.
+    */
+}
+```
+
 
 
 ## Implementation detail for the more secure methodology
