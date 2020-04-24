@@ -192,6 +192,7 @@ Once you’re in the console, explore the Database API:
 
 # Change values by using the update function
 ⚡ > q = await db.question.update({where: {id: 1}, data: {text: 'What’s up?'}})
+{ id: 1, text: 'What’s up?', publishedAt: 2020-04-24T22:08:17.307Z }
 
 # db.questions.findMany() displays all the questions in the database.
 ⚡ > await db.questions.findMany()
