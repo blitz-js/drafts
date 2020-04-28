@@ -149,7 +149,8 @@ model Choice {
 }
 ```
 
-Now, we need to migrate our database. This is a way of telling it that you have edited your schema in some way. Run this, and enter something like `init db` when prompted for a migration name:
+Now, we need to migrate our database. This is a way of telling it that you have edited your schema in some way. Run the below command. When it asks you to enter a migration name you can enter anything you want, perhaps `
+"init db":
 
 ```sh
 $ blitz db migrate
@@ -580,7 +581,6 @@ export default ShowQuestionPage
 If you want to share your project with the world wide Blitz community there is no better place to do that than on Slack.
 
 Just visit https://slack.blitzjs.com. Then, post the link to the #show-and-tell channel to share it with everyone!
-
 
 
 
