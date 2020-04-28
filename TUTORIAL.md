@@ -64,7 +64,7 @@ These files are:
 
 - `public/` is a directory where you will put any static assets. If you have images, files, or videos which you want to use in your app, this is where to put them. 
 
-- `utils/ is a good place to put any share util files which you might use across different sections of your app.
+- `utils/` is a good place to put any share util files which you might use across different sections of your app.
 
 - `dotfiles (.babelrc.js, .env, etc)` are configuration files for various bits of JavaScript tooling. 
 
@@ -118,7 +118,7 @@ Now, we’ll setup the database and create your first model.
 
 Open up `db/schema.prisma`. It’s a configuration file which our default database engine Prisma uses.
 
-By default, the apps is created with SQLite. If you’re new to databases, or you’re just interested in trying Blitz, this is the easiest choice. Not that when starting your first project, you may want to use a more scalable database like PostgreSQL, to avoid the pains of switching your database down the road.
+By default, the apps is created with SQLite. If you’re new to databases, or you’re just interested in trying Blitz, this is the easiest choice. Note that when starting your first project, you may want to use a more scalable database like PostgreSQL, to avoid the pains of switching your database down the road.
 
 ## Creating models
 
