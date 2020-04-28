@@ -159,7 +159,7 @@ $ blitz db migrate
 
 ## Playing with the API
 
-Now, let’s hop into the interactive Blitz shell and play around with the free API Blitz gives you. To invoke the Blitz shell, use this command:
+Now, let’s hop into the interactive Blitz shell and play around with the free API Blitz gives you. To invoke the Blitz console, use this command:
 
 ```sh
 $ blitz console
@@ -581,7 +581,6 @@ export default ShowQuestionPage
 If you want to share your project with the world wide Blitz community there is no better place to do that than on Slack.
 
 Just visit https://slack.blitzjs.com. Then, post the link to the #show-and-tell channel to share it with everyone!
-
 
 
 
