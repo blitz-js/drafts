@@ -167,15 +167,15 @@ $ blitz console
 
 Once you’re in the console, explore the Database API:
 
-
+[//]: # (Let’s move this to await when it’s available for all */)
 
 ```sh
 # No questions are in the system yet.
-⚡ > await db.question.findMany()
+⚡ > db.question.findMany().then(console.log)
 []
 
 # Create a new Question.
-⚡ > q = await db.question.create({data: {text: 'What’s new?', publishedAt: new Date()}})
+⚡ > q = db.question.create({data: {text: 'What’s new?', publishedAt: new Date()}}).then(console.log)
 { id: 1, text: 'What’s new?', publishedAt: 2020-04-24T22:08:17.307Z }
 
 # Now it has an ID.
@@ -190,11 +190,11 @@ Once you’re in the console, explore the Database API:
 2020-04-24T22:08:17.307Z
 
 # Change values by using the update function
-⚡ > q = await db.question.update({where: {id: 1}, data: {text: 'What’s up?'}})
+⚡ > q = db.question.update({where: {id: 1}, data: {text: 'What’s up?'}}).then(console.log)
 { id: 1, text: 'What’s up?', publishedAt: 2020-04-24T22:08:17.307Z }
 
 # db.questions.findMany() displays all the questions in the database.
-⚡ > await db.questions.findMany()
+⚡ > db.questions.findMany().then(console.log)
 [
   { id: 1, text: 'What’s up?', publishedAt: 2020-04-24T22:08:17.307Z }
 ]
