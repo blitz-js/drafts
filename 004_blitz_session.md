@@ -157,18 +157,13 @@ export default async function exampleQuery(args: SomArgs, ctx: Context) {
       // get private session data for this session
       let privateData = await Session.getPrivateData(session);
 
-      let newSessionData = {
-        newKey: "newValue",
-        ...sessionData
-      };
-
       // Can change privateData for this session only
       await Session.setPrivateData(session, { ...privateData /* ... */ });
 
       // Log user out of this specific device
       await Session.revokeSessions([session]);
     } catch (err) {
-      if (Session.Error.isUnauthorised(err)) {
+      if (Session.Error.isUnauthorized(err)) {
         // This session has been revoked
       } else {
         // some generic error.
@@ -286,7 +281,7 @@ export const middleware = [
         // Adds session object to the ctx
         return await Session.getSession(req, res, enableCsrfProtection);
     } catch (err) {
-        if (Session.Error.isUnauthorised(err)) {
+        if (Session.Error.isUnauthorized(err)) {
             if (Session.Error.isAntiCSRFTokenFailed(err)) {
                 throw err;
             }
