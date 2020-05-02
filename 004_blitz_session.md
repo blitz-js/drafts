@@ -20,12 +20,10 @@ This RFC is almost entirely put together by [Rishabh Poddar](https://twitter.com
 1. Enable login and logout functionality.
 2. Ability to easily set session inactivity timeout length (potentially for an "infinite" amount of time).
 3. By default, prevent against:
-
    - CSRF: Can be switch off on a per endpoint basis.
    - XSS
    - Brute force
    - Database session theft: Even if an attacker gets the session tokens from the db, they should not be able to hijack those user's accounts.
-
 4. Optionally provide significantly more security by detecting token theft as per [this RFC](https://tools.ietf.org/html/rfc6749#section-10.4). This will be inspired by [SuperTokens.io](https://supertokens.io?s=bl)'s implementation of sessions. [Here](https://docs.google.com/spreadsheets/d/14h9qd2glE31HSGUofx43XwfJHZNzgkdCwEKl-3UcXLE/edit?usp=sharing) are all the ways tokens can be stolen.
 5. Allow users to revoke a session
 6. Allow multiple devices per logged in user
@@ -284,7 +282,7 @@ export const middleware = [
   (req: BlitzApiRequest, res: BlitzApiResponse): SessionType => {
     try {
         let enableCsrfProtection = req.method !== "GET";
-        
+
         // Adds session object to the ctx
         return await Session.getSession(req, res, enableCsrfProtection);
     } catch (err) {
