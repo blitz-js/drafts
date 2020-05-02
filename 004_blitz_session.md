@@ -50,6 +50,29 @@ Both methods send access tokens to the frontend via `httpOnly`, `secure` cookies
 
 ### Blitz Developer Interface
 
+#### Access Session Data in UI Components
+
+```ts
+import {useSession} from 'blitz'
+// These are regular Blitz mutations
+import login from 'app/auth/mutations/login'
+import logout from 'app/auth/mutations/logout'
+
+export default function AccountComponent() {
+  // This hook returns the `publicData` session object (see Login Mutation below)`
+  const session = useSession();
+
+  if (session.userId) {
+    return <div>
+      You are logged in as {session.userId} with role {session.role}
+      <button onClick={logout}>Logout</button>
+    </div>
+  } else {
+    return <div><button onClick={login}>Login</button></div>
+  }
+}
+```
+
 #### Login Mutation
 
 ```ts
@@ -63,12 +86,11 @@ export default async function login(args: UserCredentials, ctx: Context) {
 
   try {
     await ctx.session.create({
-      userId: user.id,
-      role: "admin",
-      // publicData will be accessible by frontend code and will
-      // contain userId and role along with any other data provided here.
-      // Put anything here you don't want to make a DB request for
+      // publicData will be accessible by frontend code with the `useSession()` hook
+      // Put anything here that's not sensitive & you don't want to make a DB request for
       publicData: {
+        userId: user.id,  // required
+        role: "admin",    // required
         teamIds: user.teams.map(team => team.id)
       },
       // privateData is stored in the DB with the session and is not directly
@@ -110,12 +132,13 @@ export default async function getProducts(args: SomArgs, ctx: Context) {
 
   // Example on how to read/set session publicData
   let publicSessionData = await ctx.session.getPublicData();
-  await ctx.session.setPublicData({ ...publicSessionData /* some new data */ });
+  await ctx.session.setPublicData({ ...publicSessionData, /* ... some new data */ });
 
   // Example on how to read/set session privateData
   let privateSessionData = await ctx.session.getPrivateData();
   await ctx.session.setPrivateData({
-    ...privateSessionData /* some new data */
+    ...privateSessionData, 
+    // ... some new data
   });
 
   if (ctx.session.role === "admin") {
@@ -126,7 +149,7 @@ export default async function getProducts(args: SomArgs, ctx: Context) {
 }
 ```
 
-#### Using Session Handles
+#### Using Session Handles (For advanced cases)
 
 You can get all session handles belonging to a user. With these handles you can:
 
@@ -173,48 +196,6 @@ export default async function exampleQuery(args: SomArgs, ctx: Context) {
 }
 ```
 
-#### Session Regeneration / Role Change
-
-This is a security best practice when changing any `publicData`. This means that if a user's role has to change, then their session tokens will change too.
-
-```ts
-// app/users/mutations/changeRole.ts
-import { Session } from "blitz";
-
-export default async function changeRole(args: SomArgs, ctx: Context) {
-  // Authorize request
-  if (ctx.session.role !== "admin") {
-    throw new AuthorizationError();
-  }
-
-  // Update role in DB
-  const user = await db.user.update({
-    where: { id: args.userId },
-    data: { role: args.role },
-    include: { teams: true }
-  });
-
-  let regeneratedSession = await ctx.regenerate({
-    role: user.role,
-    publicData: {
-      ...ctx.session.getPublicData(),
-      teamIds: user.teams.map(team => team.id)
-    }
-  });
-
-  /*
-    - New tokens are now set in the response header.
-    - The old access token has not been revoked yet. This is so
-      that in case of any failure of this API, the user doesn't get logged out.
-    - The old access tokens will be revoked when the new one is used.
-      Ideally this requires synchronisation from the frontend when calling this API,
-      however, that can be ignored since regeneration is a very rare situation.
-      In the worst case (very rare), the user may get logged out if multiple,
-      parallel calls to this API are made.
-    */
-}
-```
-
 ### Implementation Details
 
 #### Session Creation
@@ -256,10 +237,12 @@ type SessionType = {
     userId: string | null, // will be null if anonymous
     role: string,  // will be "public" if session is anonymous.
     create: ({
-        userId: string
-        role: string
+        publicData: {
+            userId: string
+            role: string
+            [propName: string]: any
+        },
         privateData?: Object
-        publicData?: Object
     }) => Promise<SessionType>,
     revoke: () => Promise<void>,    // if anonymous, this will fo nothing.
     getPrivateData: () => Promise<object>,
@@ -267,8 +250,11 @@ type SessionType = {
     getPublicData: () => object,
     handle: string,
     regenerate({
-        role: string,
-        publicData?: Object
+        publicData: {
+            userId?: string
+            role?: string
+            [propName: string]: any
+        },
     }) => Promise<SessionType>
 }
 
@@ -393,6 +379,20 @@ If a session's role changes, we should allow for the regeneration of the session
 
 **We plan to post a separate full RFC on Authorization**
 
-## Frontend requirements
+## Other Use Cases & Interfaces
 
-TODO
+We have a plan for tackling these use cases, but we need a bit more time to figure out the best API interface.
+
+- Changing a user's role
+- Database access hooks for using our session management with any data persistence solution (any DB or third-party API). Blitz database plugins will be able to set these hooks, for example.
+- Session regeneration (future)
+
+## Security & Auditing
+
+We are writing a new library from scratch that's designed specifically for Blitz. This obviously has a level of risk, but we're in this for the long term and think this is the approach that will serve us the best.
+
+This new library uses the same proven approach to secure, scalable session management as the existing [Supertokens](https://supertokens.io/) library. The Supertokens library implements best practices as per OWASP and IETF’s RFC6819. It has been unofficially audited by numerous third-parties and found to be extremely secure. That said, it doesn't yet have any official certifications.
+
+We are committed to obtaining third-party security audits, so Blitz developers can fully rely on it.
+
+If you know anyone interested in helping with or sponsoring security audits, please contact Brandon Bayer at b@bayer.ws
