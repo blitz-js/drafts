@@ -42,7 +42,7 @@ Blitz session management will have two methods with different tradeoffs on compl
    2. Great security and usability for most apps
 2. Advanced: Short lived JWTs plus refresh tokens
    1. For apps with special operational security needs
-   2. For apps with extreme scalability needs where can't make a DB request to verify each session
+   2. For apps with extreme scalability needs where they can't make a DB request to verify each session
 
 Both methods send access tokens to the frontend via `httpOnly`, `secure` cookies. Separately, the anti-csrf token will be sent to the frontend via HTTP response headers.
 
@@ -87,7 +87,7 @@ export default async function login(args: UserCredentials, ctx: Context) {
   try {
     await ctx.session.create({
       // publicData will be accessible by frontend code with the `useSession()` hook
-      // Put anything here that's not sensitive & you don't want to make a DB request for
+      // Put anything here that's not sensitive
       publicData: {
         userId: user.id,  // required
         role: "admin",    // required
@@ -262,7 +262,7 @@ type SessionType = {
 export const middleware = [
   (req: BlitzApiRequest, res: BlitzApiResponse): SessionType => {
     try {
-        let enableCsrfProtection = req.method !== "GET";
+        let enableCsrfProtection = req.method !== "GET" && req.method !== "OPTIONS";
 
         // Adds session object to the ctx
         return await Session.getSession(req, res, enableCsrfProtection);
@@ -286,10 +286,9 @@ export const middleware = [
 
 ## Advanced: Short lived JWTs plus refresh tokens
 
-This is significantly more secure than the default method, but it is more inconvenient to the user than the above method because it requires refreshing of tokens.
+This is significantly more secure than the default method, but it is more inconvenient to the user than the above method because it requires refreshing of tokens. 
 
 ### Blitz Developer Interface
-
 TODO
 
 ### Implementation Details
