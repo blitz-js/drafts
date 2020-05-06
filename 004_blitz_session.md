@@ -333,18 +333,16 @@ This question is answered in this 2 part [blog post](https://supertokens.io/blog
 
 ## Anonymous Sessions
 
-By default, anonymous users don't have sessions. The `ctx.session` object will be:
+A "draft" session will be created for all anonymous users. A session will be created and cookies sent to the client, but the session will not be saved in the database until you call `ctx.session.setPrivateData()`. The `ctx.session` object for anonymous users will be:
 
 ```js
-// Default with anonymous sessions disabled:
+// Default with anonymous sessions:
 {
   handle: null,
   userId: null,
   role: "public"
 }
 ```
-
-However, **you can turn on anonymous sessions**, in which case a session will be created (and stored in the DB for the default method). They will have a full session object on which you can set `publicData` and `privateData`.
 
 One use case for this is saving shopping cart items for anonymous users. If an anonymous user later signs up or logs in, the anonymous session data can be merged into their new authenticated session.
 
