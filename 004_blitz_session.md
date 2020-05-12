@@ -181,10 +181,13 @@ export default async function exampleQuery(args: SomArgs, ctx: Context) {
       // Can use publicData to get the role or other public info of this session.
       let publicData = await Session.getPublicData(session);
 
+      // Can change publicData for this session session
+      await Session.setPublicData(session, { ...publicData /* ... */ });
+
       // get private session data for this session
       let privateData = await Session.getPrivateData(session);
 
-      // Can change privateData for this session only
+      // Can change privateData for this session
       await Session.setPrivateData(session, { ...privateData /* ... */ });
 
       // Log user out of this specific device
@@ -293,8 +296,18 @@ export const middleware = [
 This is significantly more secure than the essential method, but adds extra complexity than the above method because it requires refreshing of tokens.
 
 ### Blitz Developer Interface
-Same as the essential method, but with an extra http endpoint for refreshing tokens
-
+Same as the essential method, but with a few additions:
+- An extra http endpoint for refreshing tokens
+- A callback function for when token theft is detected (ideally where custom error handlers are defined). We will provide a default implementation in which the affected session will be revoked, logging out the victim and the attacker.
+  ```
+  Session.onTokenTheft((sessionHandle: string, userId: string, req: BlitzApiRequest, res: BlitzApiResponse) => {
+    // can revoke this session using sessionHandle
+    // OR
+    // can revoked all sessions belonging to userId
+    // OR
+    // send an email alert to the user etc..
+  })
+  ```
 ### Implementation Details
 
 #### Session Creation
