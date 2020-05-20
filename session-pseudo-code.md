@@ -25,7 +25,7 @@ function createNewSession(res: BlitzApiResponse, publicData: object, privateData
     setHeader("id-connect-token", idConnectToken + ";" + idConnectPublicKey);
 
     return {
-        sessionHandle, userId
+        sessionHandle, publicData
     }
 }
 
