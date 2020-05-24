@@ -255,14 +255,8 @@ type SessionType = {
     getPrivateData: () => Promise<object>,
     setPrivateData: (data: object) => Promise<void>,
     getPublicData: () => object,
-    handle: string,
-    regenerate({
-        publicData: {
-            userId?: string
-            role?: string
-            [propName: string]: any
-        },
-    }) => Promise<SessionType>
+    setPublicData: (data: object) => Promise<void>,
+    handle: string
 }
 
 // NOTE: Ignore this middleware API, the middleware API itself will likely change

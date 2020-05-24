@@ -24,7 +24,7 @@ function createNewSession(res: BlitzApiResponse, publicData: object, privateData
         setHeader(res, "id-connect-token", idConnectToken + ";" + idConnectPublicKey);
 
         return {
-            sessionHandle, publicData, userId
+            sessionHandle, publicData
         }
     } else {
         // TODO: advanced method
@@ -111,7 +111,7 @@ function getSession(req: BlitzApiRequest, res: BlitzApiResponse, enableCsrfProte
     }
     if (sessionToken !== undefined) {
         let antiCSRFToken = req.headers("anti-csrf");
-        let {sessionHandle, userId, publicData, newAccessToken, newOpenIDConnectToken,
+        let {sessionHandle, publicData, newAccessToken, newOpenIDConnectToken,
             newOpenIDConnectTokenPublicKey, expiresAt} = getSessionHelper(sessionToken, antiCSRFToken, enableCsrfProtection);
         if (newAccessToken !== undefined) {
             setCookie(res, "sSessionToken", newAccessToken, <API domain>, expiresAt, httpOnly: true, <secure: env !== dev mode>, <sameSite>);
@@ -120,7 +120,7 @@ function getSession(req: BlitzApiRequest, res: BlitzApiResponse, enableCsrfProte
             setHeader(res, "id-connect-token", newOpenIDConnectToken + ";" + newOpenIDConnectTokenPublicKey);
         }
         return {
-            sessionHandle, publicData, userId
+            sessionHandle, publicData
         }
     } else {
         // TODO: advanced method
@@ -155,7 +155,7 @@ function getSessionHelper(sessionToken: string, inputAntiCSRFToken: string | und
         newOpenIDConnectTokenPublicKey = publicKey;
         newAccessToken = base64(sessionHandle +";"+ UUID() + ";" + hash(JSON.stringify(publicData)) + ";v0");
     }
-    return {sessionHandle, userId, publicData: JSON.parse(publicData), newAccessToken, newOpenIDConnectToken,
+    return {sessionHandle, publicData: JSON.parse(publicData), newAccessToken, newOpenIDConnectToken,
             newOpenIDConnectTokenPublicKey, expiresAt};
 }
 ```
@@ -211,6 +211,11 @@ function getPrivateData(sessionHandle: string) {
 ### `setPrivateData`
 ```ts
 function setPrivateData(sessionHandle: string, newData) {
+    let oldData = getPrivateData(sessionHandle);
+    newData = {
+        ...oldData,
+        ...newData
+    };
     let numberOfRowsUpdated = updateInDb(sessionHandle, JSON.stringify(newData));   // update <table> set sessionData = newData where session_handle = sessionHandle;
     if (numberOfRowsUpdated === 0) {
         throw new UnauthorisedException("sessionHandle doesn't exist");
@@ -232,6 +237,13 @@ function getPublicData(sessionHandle: string) {
 ### `setPublicData`
 ```ts
 function setPublicData(sessionHandle: string, newData) {
+    assert newData.userId === undefined; // no changing of userId for a session.
+
+    let oldData = getPublicData(sessionHandle);
+    newData = {
+        ...oldData,
+        ...newData
+    };
     let numberOfRowsUpdated = updateInDb(sessionHandle, JSON.stringify(newData));   // update <table> set publicData = newData where session_handle = sessionHandle;
     if (numberOfRowsUpdated === 0) {
         throw new UnauthorisedException("sessionHandle doesn't exist");
@@ -244,6 +256,69 @@ function setPublicData(sessionHandle: string, newData) {
 function refreshSession(req: BlitzApiRequest, res: BlitzApiResponse) {
     // TODO: advanced method
 }
+```
+
+### Session class in context object
+```ts
+    class Session {
+        private sessionHandle: string | undefined;
+        private publicData: object | undefined;
+        public userId: string | undefined;
+        public role: string | undefined;
+
+        constructor(sessionHandle, publicData) {
+            if (sessionHandle !== undefined) {
+                this.sessionHandle = sessionHandle;
+            }
+            if (publicData !== undefined) {
+                this.publicData= publicData;
+                this.userId = publicData.userId;
+                this.role = publicData.role;
+            }
+        }
+
+        function create(publicData, privateData) {
+            // TODO:
+        }
+
+        function revoke() {
+            if (this.sessionHandle !== undefined) {
+                // TODO:
+            }
+        }
+
+        function getPrivateData() {
+            if (this.sessionHandle !== undefined) {
+                // TODO:
+            } else {
+                throw Error("no session exists");
+            }
+        }
+
+        function setPrivateData() {
+            if (this.sessionHandle !== undefined) {
+                // TODO:
+            } else {
+                throw Error("no session exists");
+            }
+        }
+
+        function getPublicData() {
+            if (this.sessionHandle !== undefined) {
+                // TODO:
+            } else {
+                throw Error("no session exists");
+            }
+        }
+
+        function setPublicData() {
+            if (this.sessionHandle !== undefined) {
+                // TODO:
+            } else {
+                throw Error("no session exists");
+            }
+        }
+    }
 ```
 
 ## Frontend pseudo code:
