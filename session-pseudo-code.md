@@ -2,7 +2,7 @@ The pseudo code highlights the core logic of session management, the actual inte
 
 Items in `<>` are expected to come from some configuration.
 
-## Pseudo code for essential method:
+## Backend pseudo code:
 
 ### `createNewSession`
 ```ts
@@ -32,7 +32,7 @@ function createNewSession(res: BlitzApiResponse, publicData: object, privateData
 }
 
 function createNewSessionHelper(userId: string, publicData: object, privateData: object) {
-    let sessionHandle = UUID();
+    let sessionHandle = UUID() + ":ots";  // ots is opaque token simple. ":" is a delimiter
     let {idConnectToken, publicKey} = createIdConnectToken(userId, publicData, <session_expiry>);
     let antiCSRFToken = UUID();
 
@@ -74,12 +74,12 @@ function createIdConnectToken(publicData: object, expiry: number) {
 ```ts
 function storeNewSessionInDb(sessionHandle: string, userId: string, accessToken: string, antiCSRFToken: string, publicData: object, privateData: object, expiresAt: number, createdAtTime: number) {
     // table structure will be:
-    //  sessionHandle: varchar(32) Primary key
-    //  userId TEXT 
-    //  sessionTokenHash: TEXT 
+    //  session_handle: varchar(35) Primary key
+    //  user_id TEXT 
+    //  session_token_hash: TEXT 
     //  antiCSRFToken: TEXT
-    //  publicData TEXT
-    //  sessionData TEXT
+    //  public_data TEXT
+    //  session_data TEXT
     //  expires_at BIGINT
     //  created_at_time BIGINT
 
@@ -238,3 +238,12 @@ function setPublicData(sessionHandle: string, newData) {
     }
 }
 ```
+
+### `refreshSession`
+```ts
+function refreshSession(req: BlitzApiRequest, res: BlitzApiResponse) {
+    // TODO: advanced method
+}
+```
+
+## Frontend pseudo code:
