@@ -2,6 +2,10 @@ The pseudo code highlights the core logic of session management, the actual inte
 
 Items in `<>` are expected to come from some configuration.
 
+## Notes:
+These are points that are not obvious from the below implementation:
+- The client can change the frontendData on the frontend and there will be no way to detecting that change. This has no security downsides since the backend is anyway not supposed to "blindly" trust data sent from the frontend.
+
 ## Backend pseudo code:
 
 ### `createNewSession`
@@ -14,14 +18,14 @@ function createNewSession(res: BlitzApiResponse, publicData: object, privateData
     let userId = publicData.userId;
     if (<essential method>) {
         let {
-            sessionHandle, accessToken, antiCSRFToken, idConnectToken, idConnectPublicKey, expiresAt
+            sessionHandle, accessToken, antiCSRFToken, publicDataToken, expiresAt
         } = createNewSessionHelper(userId, publicData, privateDate);
 
         setCookie(res, "sSessionToken", accessToken, <API domain>, expiresAt, httpOnly: true, <secure: env !== dev mode>, <sameSite>);
 
         setHeader(res, "anti-csrf", antiCSRFToken);
 
-        setHeader(res, "id-connect-token", idConnectToken + ";" + idConnectPublicKey);
+        setHeader(res, "public-data-token", publicDataToken);
 
         return {
             sessionHandle, publicData
@@ -32,8 +36,8 @@ function createNewSession(res: BlitzApiResponse, publicData: object, privateData
 }
 
 function createNewSessionHelper(userId: string, publicData: object, privateData: object) {
-    let sessionHandle = UUID() + ":ots";  // ots is opaque token simple. ":" is a delimiter
-    let {idConnectToken, publicKey} = createIdConnectToken(userId, publicData, <session_expiry>);
+    let sessionHandle = UUID() + ":ots";  // ots is opaque token simple. ":" is a delimiter. This will be used for interoperability between the essential and advanced method.
+    let publicDataToken = createPublicDataToken(userId, publicData, <session_expiry>);
     let antiCSRFToken = UUID();
 
     /*
@@ -49,24 +53,16 @@ function createNewSessionHelper(userId: string, publicData: object, privateData:
     createdAtTime);
 
     return {
-        sessionHandle, accessToken, antiCSRFToken, idConnectToken, idConnectPublicKey: publicKey,
-        expiresAt
+        sessionHandle, accessToken, antiCSRFToken, publicDataToken, expiresAt
     }
 }
 
 ```
 
-### `createIdConnectToken`
+### `createPublicDataToken`
 ```ts
-function createIdConnectToken(publicData: object, expiry: number) {
-    let {publicKey, privateKey} = getCurrentIdConnectSigningKeys(); 
-
-    let idConnectToken = jwt(privateKey, {
-        ...publicData,
-        expiry
-    }); // payload is publicData + expiry
-
-    return {idConnectToken, publicKey};
+function createPublicDataToken(publicData: object, expiry: number) {
+    return base64(JSON.stringify(publicData) + ";" + expiry);
 }
 ```
 
@@ -87,20 +83,6 @@ function storeNewSessionInDb(sessionHandle: string, userId: string, accessToken:
 }
 ```
 
-### `getCurrentIdConnectSigningKeys`
-```ts
-function getCurrentIdConnectSigningKeys() {
-    let keys = // this will fetch public / private key from memory. If not there, then will query DB. If not in DB, it will create one (in isolation).
-
-    if (keys === undefined || keys.expired) {
-        keys = // create new keys and save in db (in isolation).
-    }
-    return {
-        keys.publicKey, keys.privateKey
-    };
-}
-```
-
 ### `getSession`
 ```ts
 function getSession(req: BlitzApiRequest, res: BlitzApiResponse, enableCsrfProtection: boolean) {
@@ -111,13 +93,13 @@ function getSession(req: BlitzApiRequest, res: BlitzApiResponse, enableCsrfProte
     }
     if (sessionToken !== undefined) {
         let antiCSRFToken = req.headers("anti-csrf");
-        let {sessionHandle, publicData, newAccessToken, newOpenIDConnectToken,
-            newOpenIDConnectTokenPublicKey, expiresAt} = getSessionHelper(sessionToken, antiCSRFToken, enableCsrfProtection);
+        let {sessionHandle, publicData, newAccessToken, newPublicDataToken,
+            expiresAt} = getSessionHelper(sessionToken, antiCSRFToken, enableCsrfProtection);
         if (newAccessToken !== undefined) {
             setCookie(res, "sSessionToken", newAccessToken, <API domain>, expiresAt, httpOnly: true, <secure: env !== dev mode>, <sameSite>);
         }
-        if (newOpenIDConnectToken !== undefined) {
-            setHeader(res, "id-connect-token", newOpenIDConnectToken + ";" + newOpenIDConnectTokenPublicKey);
+        if (newPublicDataToken !== undefined) {
+            setHeader(res, "public-data-token", newPublicDataToken);
         }
         return {
             sessionHandle, publicData
@@ -146,17 +128,14 @@ function getSessionHelper(sessionToken: string, inputAntiCSRFToken: string | und
         throw new UnauthorisedException("Input session ID doesn't exist");
     }
     let newAccessToken = undefined;
-    let newOpenIDConnectToken = undefined
-    let newOpenIDConnectTokenPublicKey = undefined;
+    let newPublicDataToken = undefined
     if (hash(publicData) !== splittedToken[2]) {
         // public data has changed somehow.. so we must issue new tokens.
-        let {idConnectToken, publicKey} = createIdConnectToken(userId, publicData, expiresAt);
-        newOpenIDConnectToken = idConnectToken;
-        newOpenIDConnectTokenPublicKey = publicKey;
+        let publicDataToken = createPublicDataToken(userId, publicData, expiresAt);
+        newPublicDataToken = publicDataToken;
         newAccessToken = base64(sessionHandle +";"+ UUID() + ";" + hash(JSON.stringify(publicData)) + ";v0");
     }
-    return {sessionHandle, publicData: JSON.parse(publicData), newAccessToken, newOpenIDConnectToken,
-            newOpenIDConnectTokenPublicKey, expiresAt};
+    return {sessionHandle, publicData: JSON.parse(publicData), newAccessToken, newPublicDataToken, expiresAt};
 }
 ```
 
