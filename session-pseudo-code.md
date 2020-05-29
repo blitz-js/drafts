@@ -127,17 +127,29 @@ function getSessionHelper(sessionToken: string, inputAntiCSRFToken: string | und
         revokeSession(sessionHandle);
         throw new UnauthorisedException("Input session ID doesn't exist");
     }
+    let newExpiresAt = Date.now() + <session_expiry>;
     let newAccessToken = undefined;
     let newPublicDataToken = undefined
-    if (hash(publicData) !== splittedToken[2]) {
+
+    // we generate new tokens if the public data has changed or if > 1/4th of the expiry time has passed (since we are doing a rolling expiry window)
+    if (hash(publicData) !== splittedToken[2] || (expiresAt - Date.now()) < (3/4.0)*<session_expiry>) {
         // public data has changed somehow.. so we must issue new tokens.
-        let publicDataToken = createPublicDataToken(userId, publicData, expiresAt);
+        let publicDataToken = createPublicDataToken(userId, publicData, newExpiresAt);
         newPublicDataToken = publicDataToken;
         newAccessToken = base64(sessionHandle +";"+ UUID() + ";" + hash(JSON.stringify(publicData)) + ";v0");
+        updateSessionExpiryInDb(sessionHandle, newExpiresAt);   // should not wait for this to happen
     }
-    return {sessionHandle, publicData: JSON.parse(publicData), newAccessToken, newPublicDataToken, expiresAt};
+    return {sessionHandle, publicData: JSON.parse(publicData), newAccessToken, newPublicDataToken, newExpiresAt};
 }
 ```
+
+### `updateSessionExpiryInDb`
+```ts
+function updateSessionExpiryInDb(sessionHandle: string, expiresAt: number) {
+    updateInDb(sessionHandle, expiresAt);   // update <table> set expires_at = expiresAt where session_handle = sessionHandle;
+}
+```
+
 
 ### `revokeAllSessionsForUser`
 ```ts
