@@ -5,6 +5,7 @@ Items in `<>` are expected to come from some configuration.
 ## Notes:
 These are points that are not obvious from the below implementation:
 - The client can change the frontendData on the frontend and there will be no way to detecting that change. This has no security downsides since the backend is anyway not supposed to "blindly" trust data sent from the frontend.
+- The expiry of the session is updated on use. This does not happen for each request since it would mean that we would have to update the set-cookie + the public data token on the frontend for each request which is inefficient (we will have to do a localstorage write for each request). Instead, it happens for all non-GET api requests that happen anytime after 1/4th the session expiry time has passed already.   
 
 ## Backend pseudo code:
 
@@ -85,7 +86,7 @@ function storeNewSessionInDb(sessionHandle: string, userId: string, accessToken:
 
 ### `getSession`
 ```ts
-function getSession(req: BlitzApiRequest, res: BlitzApiResponse, enableCsrfProtection: boolean) {
+function getSession(req: BlitzApiRequest, res: BlitzApiResponse, enableCsrfProtection: boolean, httpMethod: string) {
     let sessionToken = req.cookie("sSessionToken"); // for essential method
     let idRefreshToken = req.cookie("sIdRefreshToken"); // for advanced method
     if (accessToken === undefined && idRefreshToken === undefined) {
@@ -94,7 +95,7 @@ function getSession(req: BlitzApiRequest, res: BlitzApiResponse, enableCsrfProte
     if (sessionToken !== undefined) {
         let antiCSRFToken = req.headers("anti-csrf");
         let {sessionHandle, publicData, newAccessToken, newPublicDataToken,
-            expiresAt} = getSessionHelper(sessionToken, antiCSRFToken, enableCsrfProtection);
+            expiresAt} = getSessionHelper(sessionToken, antiCSRFToken, enableCsrfProtection), httpMethod;
         if (newAccessToken !== undefined) {
             setCookie(res, "sSessionToken", newAccessToken, <API domain>, expiresAt, httpOnly: true, <secure: env !== dev mode>, <sameSite>);
         }
@@ -109,7 +110,7 @@ function getSession(req: BlitzApiRequest, res: BlitzApiResponse, enableCsrfProte
     }
 }
 
-function getSessionHelper(sessionToken: string, inputAntiCSRFToken: string | undefined, enableCsrfProtection: boolean) {
+function getSessionHelper(sessionToken: string, inputAntiCSRFToken: string | undefined, enableCsrfProtection: boolean, httpMethod: string) {
     let splittedToken = sessionToken.split(";");
     let sessionHandle = splittedToken[0]; // we need to check for the version too at the end and make sure its v0 (see creating a new session function)
     let sessionInfo = readFromDb(sessionHandle);
@@ -127,13 +128,14 @@ function getSessionHelper(sessionToken: string, inputAntiCSRFToken: string | und
         revokeSession(sessionHandle);
         throw new UnauthorisedException("Input session ID doesn't exist");
     }
-    let newExpiresAt = Date.now() + <session_expiry>;
     let newAccessToken = undefined;
     let newPublicDataToken = undefined
 
-    // we generate new tokens if the public data has changed or if > 1/4th of the expiry time has passed (since we are doing a rolling expiry window)
-    if (hash(publicData) !== splittedToken[2] || (expiresAt - Date.now()) < (3/4.0)*<session_expiry>) {
-        // public data has changed somehow.. so we must issue new tokens.
+    // we generate new tokens if the public data has changed or if > 1/4th of the expiry time has passed (since we are doing a rolling expiry window).
+    // the reason we have the httpMethod !== "get" check is cause we cannot reliably update the frontend expiry information in get requests since they could be from a browser level navigation (for example: user opening the site after a long time).
+    if (hash(publicData) !== splittedToken[2] || ((expiresAt - Date.now()) < (1 - 1/4.0)*<session_expiry> &&
+            httpMethod !== "get")) {
+        let newExpiresAt = Date.now() + <session_expiry>;
         let publicDataToken = createPublicDataToken(userId, publicData, newExpiresAt);
         newPublicDataToken = publicDataToken;
         newAccessToken = base64(sessionHandle +";"+ UUID() + ";" + hash(JSON.stringify(publicData)) + ";v0");
