@@ -315,7 +315,7 @@ function refreshSession(req: BlitzApiRequest, res: BlitzApiResponse) {
 ```
 
 ## Frontend pseudo code:
-We would add interceptors to `fetch`. To see how to do this, please see [this link](https://github.com/supertokens/supertokens-website/blob/master/lib/ts/index.ts).
+We would add interceptors to `fetch`.
 All requests (GET / POST etc..) will go through a helper function:
 ```ts
 // to be called once on app load.
