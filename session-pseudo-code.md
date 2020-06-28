@@ -136,7 +136,7 @@ function getSessionHelper(sessionToken: string, inputAntiCSRFToken: string | und
     if (hash(publicData) !== splittedToken[2] || ((expiresAt - Date.now()) < (1 - 1/4.0)*<session_expiry> &&
             httpMethod !== "get")) {
         let newExpiresAt = Date.now() + <session_expiry>;
-        let publicDataToken = createPublicDataToken(userId, publicData, newExpiresAt);
+        let publicDataToken = createPublicDataToken(publicData, newExpiresAt);
         newPublicDataToken = publicDataToken;
         newAccessToken = base64(sessionHandle +";"+ UUID() + ";" + hash(JSON.stringify(publicData)) + ";v0");
         updateSessionExpiryInDb(sessionHandle, newExpiresAt);   // should not wait for this to happen
@@ -315,3 +315,113 @@ function refreshSession(req: BlitzApiRequest, res: BlitzApiResponse) {
 ```
 
 ## Frontend pseudo code:
+We would add interceptors to `fetch`. To see how to do this, please see [this link](https://github.com/supertokens/supertokens-website/blob/master/lib/ts/index.ts).
+All requests (GET / POST etc..) will go through a helper function:
+```ts
+// to be called once on app load.
+addSessionInterception = () => {
+    originalFetch = global.fetch
+    global.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
+        return await doRequest(
+            (config?: RequestInit) => {
+                return originalFetch(url, {
+                    ...config
+                });
+            },
+            config,
+            url
+        );
+    };
+}
+
+
+// httpCall is the actual call to `fetch`. It takes the fetch config, and returns the response promise.
+// config is the fetch config
+// url is the url to which the request is going to.
+doRequest = (httpCall: (config?: RequestInit) => Promise<Response>, config?: RequestInit, url?: any): Promise<Response> => {
+    if (/*url is not app's API domain*/) {
+        return await httpCall(config)
+    }
+
+    let antiCsrfToken = getAntiCsrfToken()
+    if (antiCsrfToken !== null) {
+        // <add anti csrf to config's header with key "anti-csrf">
+    }
+    let response = await httpCall(config);
+    
+    if (response === session expired || response === unauthorised) {
+        deleteAntiCsrfToken()
+        deletePublicToken()
+        // cookies should be cleared automatically from the backend.
+    } else {
+        foreach (key, value in response.headers) {
+            if (key === "anti-csrf") {
+                setAntiCsrfToken(value)
+            } else if (key === "public-data-token") {
+                storePublicToken(value)
+            }
+        }
+    }
+    return response
+}
+```
+
+## doesSessionExist
+```ts
+    doesSessionExist() {
+        return getSessionInfo() !== null;
+    }
+```
+
+## getSessionInfo
+```ts
+getSessionInfo() {
+    let item = localstorage.getItem("public-token")
+    if (item === null) {
+        return null;
+    }
+    item = undo base64(item)
+    let expiry = item.split(";")[1]
+    if (Date.now() > expiry) {
+        deleteAntiCsrfToken()
+        deletePublicToken()
+        return null;
+    }
+    return JSON.parse(item.split(";")[0]);
+}
+```
+
+## getAntiCsrfToken
+```ts
+getAntiCsrfToken() {
+    return localstorage.getItem("anti-csrf");
+}
+```
+
+## setAntiCsrfToken
+```ts
+setAntiCsrfToken(token) {
+    localstorage.setItem("anti-csrf", token);
+}
+```
+
+## storePublicToken
+```ts
+storePublicToken(token) {
+     localstorage.setItem("public-token", token);
+}
+```
+
+## deleteAntiCsrfToken
+```ts
+deleteAntiCsrfToken() {
+     localstorage.removeItem("anti-csrf");
+}
+```
+
+## deletePublicToken
+```ts
+deletePublicToken() {
+    localstorage.removeItem("public-token");
+}
+```
